@@ -1,14 +1,17 @@
 {
   "name": "garage-comics",
-  "type": "module",
+  "private": true,
   "version": "0.0.1",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
-    "preview": "astro preview",
-    "astro": "astro"
+    "dev": "bun --bun concurrently \"bun:dev:web\" \"bun:dev:api\"",
+    "dev:web": "cd apps/web && bun run dev",
+    "dev:api": "cd apps/api && go run ."
   },
-  "dependencies": {
-    "astro": "^5.8.1"
+  "devDependencies": {
+    "concurrently": "^8.2.2"
   }
 }
