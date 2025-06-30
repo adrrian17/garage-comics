@@ -1,8 +1,8 @@
 ---
-import { getCollection, getEntry } from 'astro:content';
-import ComicCard from '../components/ComicCard.astro';
+import { getCollection, getEntry } from "astro:content";
+import ComicCard from "../components/ComicCard.astro";
 
-const comics = await getCollection('comics');
+const comics = await getCollection("comics");
 ---
 
 <div class="grid grid-cols-2 gap-12 lg:grid-cols-4">

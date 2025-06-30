@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 export default function Countdown() {
   const dateDiff = () => {
     const todayDate = new Date();
-    const futureDate = new Date('2024-08-30T11:59:59');
+    const futureDate = new Date("2024-08-30T11:59:59");
 
     const diff = futureDate - todayDate;
 
@@ -15,19 +15,20 @@ export default function Countdown() {
     return { days, hours, mins, secs };
   };
 
-  const [days, setDays] = useState({ '--value': 0 });
-  const [hours, seHours] = useState({ '--value': 0 });
-  const [minutes, setMinutes] = useState({ '--value': 0 });
-  const [seconds, setSeconds] = useState({ '--value': 0 });
+  const [days, setDays] = useState({ "--value": 0 });
+  const [hours, seHours] = useState({ "--value": 0 });
+  const [minutes, setMinutes] = useState({ "--value": 0 });
+  const [seconds, setSeconds] = useState({ "--value": 0 });
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: We don't need to re-run the effect when the date changes
   useEffect(() => {
     const interval = setInterval(() => {
       var diff = dateDiff();
 
-      setDays({ '--value': diff.days });
-      seHours({ '--value': diff.hours });
-      setMinutes({ '--value': diff.mins });
-      setSeconds({ '--value': diff.secs });
+      setDays({ "--value": diff.days });
+      seHours({ "--value": diff.hours });
+      setMinutes({ "--value": diff.mins });
+      setSeconds({ "--value": diff.secs });
     }, 1000);
 
     return () => clearInterval(interval);
