@@ -1,0 +1,25 @@
+---
+import { Image } from 'astro:assets';
+
+const { comic } = Astro.props;
+---
+
+<div class="flex flex-col">
+  <a href=`/comics/${comic.slug}`>
+    <figure>
+      <Image
+        class="shadow-md rounded-xl"
+        src={comic.data.image.src}
+        alt={comic.data.image.alt}
+        loading="lazy"
+        decoding="async"
+        width={350}
+        height={500}
+      />
+    </figure>
+  </a>
+  <div class="mt-4 mb-6 space-y-2 text-secondary-400">
+    <h1 class="text-xl font-bold">{comic.data.title}</h1>
+    <p class="text-secondary-300">{`$${comic.data.price} MXN`}</p>
+  </div>
+</div>

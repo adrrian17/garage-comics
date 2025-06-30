@@ -1,0 +1,22 @@
+---
+import '../styles/global.css';
+
+import Footer from '../components/Footer.astro';
+import NavBar from '../components/NavBar.astro';
+---
+
+<html lang="es" data-theme="light" class="bg-brand-500">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+
+    <title>Garage Cómics</title>
+  </head>
+  <body class="container max-w-screen-lg px-8 mx-auto">
+    <NavBar />
+    <slot />
+    <Footer />
+  </body>
+</html>

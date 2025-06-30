@@ -1,0 +1,55 @@
+---
+import { Image } from "astro:assets";
+import Facebook from "./icons/Facebook.astro";
+import Instagram from "./icons/Instagram.astro";
+import TikTok from "./icons/TikTok.astro";
+import Twitter from "./icons/Twitter.astro";
+
+const { author } = Astro.props;
+---
+
+<div>
+  <figure>
+    <Image
+      class="shadow-md rounded-xl"
+      src={author.data.image.src}
+      alt={author.data.image.alt}
+      width={400}
+      height={400}
+    />
+  </figure>
+  <div class="flex flex-col items-center mt-4 space-y-2 text-center">
+    <h1 class="text-xl font-bold text-secondary-500">{author.data.name}</h1>
+    <p class="text-secondary-500">{author.data.role}</p>
+    <div class="flex justify-center gap-4 pt-4">
+      {
+        author.data.socialMedia.map((profile) => {
+          let icon;
+
+          switch (profile.name) {
+            case "twitter":
+              icon = <Twitter />;
+              break;
+
+            case "facebook":
+              icon = <Facebook />;
+              break;
+
+            case "instagram":
+              icon = <Instagram />;
+              break;
+
+            case "tiktok":
+              icon = <TikTok />;
+              break;
+
+            default:
+              break;
+          }
+
+          return <a href={profile.url}>{icon}</a>;
+        })
+      }
+    </div>
+  </div>
+</div>

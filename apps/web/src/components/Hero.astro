@@ -1,0 +1,44 @@
+---
+import { Image } from "astro:assets";
+import Poster from "../images/poster.webp";
+
+---
+
+<div class="flex items-center flex-col lg:flex-row w-full mt-12">
+  <Image
+    width={500}
+    height={800}
+    class="object-cover"
+    src={Poster}
+    alt="Garage Cómics"
+  />
+  <div class="prose prose-lg ml-6 mt-6 lg:mt-0">
+    <p>
+      <b class="underline decoration-2">Garage Cómics</b>, 
+      es un evento anual organizado por y para autores de historieta. Este
+      fue pensado como un espacio autónomo y libre donde participan autores de
+      todo México y Latinoamérica.
+    </p>
+    <p>
+      Nuestra meta es ofrecer un espacio autores nuevos o establecidos, libre de
+      tarifas elevadas o de una ubicación inaccesible para exponer su trabajo
+      nuevo de manera anual. El medio digital ofrece una oportunidad única para
+      converger tanto autores como lectores durante los tres días que dura el
+      festival. ¡No te tienes que preocupar por nada más que por navegar la
+      página y descubrir nuevos cómics!
+    </p>
+    <p>
+      <b class="underline decoration-2">Garage Cómics</b> tiene lugar en Julio, del 1 al 31 del mismo mes.
+    </p>
+    <button
+      class="btn btn-secondary text-stone-50 w-full rounded-none"
+      data-tally-open="wQ7PW8"
+      data-tally-layout="modal"
+      data-tally-emoji-text="👋"
+      data-tally-emoji-animation="wave"
+      data-tally-auto-close="0"
+    >
+      ¡Participa!
+    </button>
+  </div>
+</div>

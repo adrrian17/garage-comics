@@ -1,0 +1,50 @@
+---
+import { getCollection } from "astro:content";
+import { Image } from "astro:assets";
+import DefaultLayout from "../../layouts/DefaultLayout.astro";
+
+export async function getStaticPaths() {
+  const comics = await getCollection("comics");
+
+  return comics.map((comic) => ({
+    params: { slug: comic.slug },
+    props: { comic },
+  }));
+}
+
+const { comic } = Astro.props;
+const { Content } = await comic.render();
+---
+
+<DefaultLayout subTitle={comic.data.title}>
+  <div
+    class="flex flex-col items-center my-12 space-y-12 lg:space-y-0 lg:flex-row lg:space-x-12"
+  >
+    <figure class="flex justify-center">
+      <Image
+        class="shadow-xl rounded-xl"
+        src={comic.data.image.src}
+        alt={comic.data.image.alt}
+        loading="lazy"
+        decoding="async"
+        width={350}
+        height={500}
+      />
+    </figure>
+    <div class="flex-1 prose">
+      <h1 class="text-secondary-400">{comic.data.title}</h1>
+      <p class="text-secondary-300 text-xl">{`$${comic.data.price} MXN`}</p>
+      <div id="content">
+        <Content />
+      </div>
+      <button
+        class="w-full btn btn-secondary snipcart-add-item text-stone-50 rounded-none"
+        data-item-id={comic.slug}
+        data-item-name={comic.data.title}
+        data-item-price={comic.data.price}
+        data-item-image={comic.data.image.src}
+        data-item-max-quantity={1}>Agregar al Carrito</button
+      >
+    </div>
+  </div>
+</DefaultLayout>

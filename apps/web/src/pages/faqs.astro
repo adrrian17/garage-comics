@@ -1,0 +1,338 @@
+---
+import DefaultLayout from '../layouts/DefaultLayout.astro';
+import Hero from '../components/Hero.astro';
+import Rules from '../components/Rules.astro';
+import Timeline from '../components/Timeline.astro';
+import ImportantInfo from '../components/ImportantInfo.astro';
+---
+
+<DefaultLayout subTitle="FAQs">
+  <div class="prose mx-auto pt-16">
+    <h1 class="text-secondary-500 text-center">PREGUNTAS FRECUENTES</h1>
+    <div class="flow-root">
+      <div class="-my-8 divide-y divide-secondary-500">
+        <details
+          class="group py-8 [&_summary::-webkit-details-marker]:hidden"
+          open
+        >
+          <summary
+            class="flex cursor-pointer items-center justify-between text-secondary-500"
+          >
+            <h2 class="text-lg font-black">
+              ¿Recibiré el comic que compré en físico?
+            </h2>
+            <span class="relative size-5 shrink-0">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="absolute inset-0 size-5 opacity-100 group-open:opacity-0"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                ></path>
+              </svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="absolute inset-0 size-5 opacity-0 group-open:opacity-100"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </span>
+          </summary>
+          <p class="mt-4 leading-loose text-secondary-500 mb-2">
+            No. Todo comic comprado en el FDC es digital. Al comprar, recibirás
+            un link de descarga para bajar tu producto.
+          </p>
+        </details>
+
+        <details class="group py-8 [&_summary::-webkit-details-marker]:hidden">
+          <summary
+            class="flex cursor-pointer items-center justify-between text-secondary-500"
+          >
+            <h2 class="text-lg font-black">¿Cuándo tiene lugar el festival?</h2>
+            <span class="relative size-5 shrink-0">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="absolute inset-0 size-5 opacity-100 group-open:opacity-0"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                ></path>
+              </svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="absolute inset-0 size-5 opacity-0 group-open:opacity-100"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </span>
+          </summary>
+          <p class="mt-4 leading-loose text-secondary-500 mb-2">
+            Durante todo el mes de Julio.
+          </p>
+        </details>
+
+        <details class="group py-8 [&_summary::-webkit-details-marker]:hidden">
+          <summary
+            class="flex cursor-pointer items-center justify-between text-secondary-500"
+          >
+            <h2 class="text-lg font-black">
+              ¿Cuánto dinero me tocará de la venta de mis cómics?
+            </h2>
+            <span class="relative size-5 shrink-0">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="absolute inset-0 size-5 opacity-100 group-open:opacity-0"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                ></path>
+              </svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="absolute inset-0 size-5 opacity-0 group-open:opacity-100"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </span>
+          </summary>
+          <p class="mt-4 leading-loose text-secondary-500 mb-2">
+            El 100% de la venta (menos las comisiones de Stripe/Paypal y
+            Snipcart). El FDC solo funciona como un portal. El dinero es todo
+            tuyo.
+          </p>
+        </details>
+
+        <details class="group py-8 [&_summary::-webkit-details-marker]:hidden">
+          <summary
+            class="flex cursor-pointer items-center justify-between text-secondary-500"
+          >
+            <h2 class="text-lg font-black">
+              ¿El FDC se quedará con los derechos de distribución una vez
+              termine el festival?
+            </h2>
+            <span class="relative size-5 shrink-0 ml-6">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="absolute inset-0 size-5 opacity-100 group-open:opacity-0"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                ></path>
+              </svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="absolute inset-0 size-5 opacity-0 group-open:opacity-100"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </span>
+          </summary>
+          <p class="mt-4 leading-loose text-secondary-500 mb-2">
+            No. Solo tenemos permiso para la venta de tu comic, mientras dure el
+            festival. Tu eres el único propietario de tu obra. Lo único que
+            nosotros vamos a estar haciendo es otorgarte una plataforma de venta
+            al mismo tiempo que a otros creadores.
+          </p>
+        </details>
+
+        <details class="group py-8 [&_summary::-webkit-details-marker]:hidden">
+          <summary
+            class="flex cursor-pointer items-center justify-between text-secondary-500"
+          >
+            <h2 class="text-lg font-black">¿Cómo es el proceso de compra?</h2>
+            <span class="relative size-5 shrink-0">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="absolute inset-0 size-5 opacity-100 group-open:opacity-0"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                ></path>
+              </svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="absolute inset-0 size-5 opacity-0 group-open:opacity-100"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </span>
+          </summary>
+          <p class="mt-4 leading-loose text-secondary-500 mb-2">
+            Al comprar, recibirás dos emails: uno con la confirmación de compra
+            y otro con el link de descarga. Los links estarán disponibles por 24
+            horas. Es importante que bajes tu cómic al momento de la compra para
+            evitar que te quedes sin él. Si necesitas ayuda con tu compra,
+            escribenos a ayuda@fdc.com . En caso de que no lo hayas podido bajar
+            por algún contratiempo, podrémos re 5 activar los links para una
+            nueva descarga.
+          </p>
+        </details>
+
+        <details class="group py-8 [&_summary::-webkit-details-marker]:hidden">
+          <summary
+            class="flex cursor-pointer items-center justify-between text-secondary-500"
+          >
+            <h2 class="text-lg font-black">
+              El sitio se tarda mucho en descargar mis cómics
+            </h2>
+            <span class="relative size-5 shrink-0">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="absolute inset-0 size-5 opacity-100 group-open:opacity-0"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                ></path>
+              </svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="absolute inset-0 size-5 opacity-0 group-open:opacity-100"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </span>
+          </summary>
+          <p class="mt-4 leading-loose text-secondary-500 mb-2">
+            Te pedimos paciencia al momento de bajar. Recuerda que hay personas
+            que comprar no uno, sino varios y esperemos, habrá mucha gente
+            bajando comics al mismo tiempo. Recomendamos bajar los comics desde
+            una computadora en lugar de un teléfono o la tablet.
+          </p>
+        </details>
+
+        <details class="group py-8 [&_summary::-webkit-details-marker]:hidden">
+          <summary
+            class="flex cursor-pointer items-center justify-between text-secondary-500"
+          >
+            <h2 class="text-lg font-black">
+              ¿Se pueden cancelar o hace reembolsos?
+            </h2>
+            <span class="relative size-5 shrink-0">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="absolute inset-0 size-5 opacity-100 group-open:opacity-0"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                ></path>
+              </svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="absolute inset-0 size-5 opacity-0 group-open:opacity-100"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </span>
+          </summary>
+          <p class="mt-4 leading-loose text-secondary-500 mb-2">
+            La única instancia en la que se podrá regresar el dinero es si el
+            cómic que adquiriste fue hecho con AI. Aunque el FDC tiene el ojo
+            puesto en evitar que el comic que compraste sea hecho con
+            inteligencia artificial, no podemos asegurar que jamás nos vaya
+            pasar esto. En cualquier otra instancia, el FDC no reembolsa o
+            cancela órdenes. Por favor toma en cuenta esto al momento de
+            comprar.
+          </p>
+        </details>
+      </div>
+    </div>
+    <div class="p-8 mt-12 prose mx-auto rounded-xl bg-secondary-500">
+      <h1 class="text-brand-500">NOTA</h1>
+      <p class="text-brand-500">
+        Si tienes alguna duda que no ha sido resuelta en este FAQ, no dudes en
+        escribirnos a ayuda@fdc.com, estamos para servirte.
+      </p>
+    </div>
+  </div>
+</DefaultLayout>

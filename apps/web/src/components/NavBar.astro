@@ -1,0 +1,71 @@
+---
+import { Image } from "astro:assets";
+import Logo from "../images/logo.png";
+
+const pathname = new URL(Astro.request.url).pathname;
+
+const links = [
+  {
+    href: "/",
+    name: "Inicio",
+  },
+  {
+    href: "/expositores",
+    name: "Expositores",
+  },
+  {
+    href: "/comics",
+    name: "Cómics",
+  },
+  {
+    href: "/reglas",
+    name: "Reglas",
+  },
+  {
+    href: "/faqs",
+    name: "FAQs",
+  },
+  {
+    href: "/staff",
+    name: "Staff",
+  },
+];
+---
+
+<div class="flex flex-col items-center w-full pt-6 space-y-6">
+  <a href="/">
+    <Image
+      width={250}
+      height={450}
+      class="object-cover"
+      src={Logo}
+      alt="Festival Digital de Cómics"
+      decoding="async"
+      loading="lazy"
+    />
+  </a>
+  <div class="bg-secondary-500 h-2 w-full"></div>
+  <div class="flex flex-col sm:flex-row w-full justify-between">
+    <div class="grid md:flex grid-cols-3 gap-2">
+      {
+        links.map((link) => (
+          <a
+            href={link.href}
+            class={
+              pathname === link.href
+                ? "btn btn-secondary btn-outline text-stone-50 rounded-none"
+                : "btn btn-ghost hover:bg-secondary-500 hover:text-stone-50 text-secondary-500 rounded-none"
+            }
+          >
+            {link.name}
+          </a>
+        ))
+      }
+    </div>
+    <a
+      href="#"
+      class="snipcart-checkout mt-6 sm:mt-0 btn btn-secondary text-stone-50 rounded-none"
+      >Carrito
+    </a>
+  </div>
+</div>

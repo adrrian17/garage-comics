@@ -1,0 +1,15 @@
+---
+import { getCollection } from "astro:content";
+import ParticipantCard from "./AuthorCard.astro";
+
+const authors = await getCollection("authors");
+---
+
+<div>
+  <div class="prose mx-auto pt-16">
+    <h1 class="text-secondary-500 text-center">EXPOSITORES</h1>
+  </div>
+  <div class="grid grid-cols-2 gap-12 lg:grid-cols-4 my-24">
+    {authors.map((author) => <ParticipantCard author={author} />)}
+  </div>
+</div>

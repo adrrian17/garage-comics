@@ -1,0 +1,12 @@
+---
+import DefaultLayout from '../layouts/DefaultLayout.astro';
+import ComicsGrid from '../components/ComicsGrid.astro';
+import Countdown from '../components/Countdown.jsx';
+---
+
+<DefaultLayout subTitle="Cómics">
+  <div class="flex flex-col items-center my-12">
+    <Countdown client:load />
+    <ComicsGrid />
+  </div>
+</DefaultLayout>

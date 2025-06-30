@@ -1,0 +1,380 @@
+---
+import { Image } from 'astro:assets';
+import DefaultLayout from '../layouts/DefaultLayout.astro';
+
+import virus from '../images/virus-visal.jpeg';
+import aurea from '../images/aurea.jpg';
+import juanele from '../images/juanele.jpeg';
+import adrian from '../images/adrian.jpeg';
+---
+
+<DefaultLayout>
+  <div class="mb-16">
+    <div class="flex flex-col justify-center mx-auto pt-16 pb-16">
+      <h1
+        class="xl:text-4xl text-3xl text-center text-secondary-500 font-extrabold pb-6 sm:w-4/6 w-5/6 mx-auto"
+      >
+        STAFF
+      </h1>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-12">
+      <div class="relative mt-16 sm:mb-32">
+        <div class="rounded-lg overflow-hidden shadow-md bg-secondary-500/90">
+          <div class="absolute -mt-20 w-full flex justify-center">
+            <div class="h-32 w-32">
+              <Image
+                src={virus}
+                alt="Virus Visal"
+                role="img"
+                class="rounded-full object-cover h-full w-full shadow-md"
+              />
+            </div>
+          </div>
+          <div class="px-6 mt-16">
+            <h1 class="font-bold text-3xl text-center mb-1 text-white">
+              Virus Visal
+            </h1>
+            <p class="text-center text-white text-base pt-3 font-normal">
+              Es una artista de la sierra de Puebla que disfruta inventando
+              historias de horror y fantasía en formato de cómic. Ha participado
+              en algunas antologías y eventos, pero en su mayoría, recurre a la
+              auto publicación para compartir su trabajo con quien esté
+              dispuesto a leerlo.
+            </p>
+            <div class="w-full flex justify-center pt-5 pb-5">
+              <a href="javascript:void(0)" class="mx-5">
+                <div aria-label="Github" role="img">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#fff"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="feather feather-github"
+                  >
+                    <path
+                      d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"
+                    ></path>
+                  </svg>
+                </div>
+              </a>
+              <a href="javascript:void(0)" class="mx-5">
+                <div aria-label="Twitter" role="img">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#fff"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="feather feather-twitter"
+                  >
+                    <path
+                      d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"
+                    ></path>
+                  </svg>
+                </div>
+              </a>
+              <a href="javascript:void(0)" class="mx-5">
+                <div aria-label="Instagram" role="img">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#fff"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="feather feather-instagram"
+                  >
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"
+                    ></rect>
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"
+                    ></path>
+                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                  </svg>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="relative mt-16 sm:mb-32">
+        <div class="rounded-lg overflow-hidden shadow-md bg-secondary-500/90">
+          <div class="absolute -mt-20 w-full flex justify-center">
+            <div class="h-32 w-32">
+              <Image
+                src={aurea}
+                alt="Aurea Freniere"
+                role="img"
+                class="rounded-full object-cover h-full w-full shadow-md"
+              />
+            </div>
+          </div>
+          <div class="px-6 mt-16">
+            <h1 class="font-bold text-3xl text-center mb-1 text-white">
+              Aurea Freniere
+            </h1>
+            <p class="text-center text-white text-base pt-3 font-normal">
+              Es una artista y escritora de la CDMX que ha participado en
+              multiples publicaciones a nivel nacional e internacional. Amante
+              de la fantasía y de la ficción histórica, ha dedicado su vida al
+              comic y a la difusión del contenido geek en general.
+            </p>
+            <div class="w-full flex justify-center pt-5 pb-5">
+              <a href="javascript:void(0)" class="mx-5">
+                <div aria-label="Github" role="img">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#fff"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="feather feather-github"
+                  >
+                    <path
+                      d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"
+                    ></path>
+                  </svg>
+                </div>
+              </a>
+              <a href="javascript:void(0)" class="mx-5">
+                <div aria-label="Twitter" role="img">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#fff"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="feather feather-twitter"
+                  >
+                    <path
+                      d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"
+                    ></path>
+                  </svg>
+                </div>
+              </a>
+              <a href="javascript:void(0)" class="mx-5">
+                <div aria-label="Instagram" role="img">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#fff"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="feather feather-instagram"
+                  >
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"
+                    ></rect>
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"
+                    ></path>
+                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                  </svg>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="relative mt-16 sm:mb-32">
+        <div class="rounded-lg overflow-hidden shadow-md bg-secondary-500/90">
+          <div class="absolute -mt-20 w-full flex justify-center">
+            <div class="h-32 w-32">
+              <Image
+                src={adrian}
+                alt="Adrian (Sin Acento)"
+                role="img"
+                class="rounded-full object-cover h-full w-full shadow-md"
+              />
+            </div>
+          </div>
+          <div class="px-6 mt-16">
+            <h1 class="font-bold text-3xl text-center mb-1 text-white">
+              Adrian (Sin Acento)
+            </h1>
+            <p class="text-center text-white text-base pt-3 font-normal">
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+              eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
+              enim ad minim veniam, quis nostrud exercitation ullamco laboris
+              nisi ut aliquip ex ea commodo consequat.
+            </p>
+            <div class="w-full flex justify-center pt-5 pb-5">
+              <a href="javascript:void(0)" class="mx-5">
+                <div aria-label="Github" role="img">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#fff"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="feather feather-github"
+                  >
+                    <path
+                      d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"
+                    ></path>
+                  </svg>
+                </div>
+              </a>
+              <a href="javascript:void(0)" class="mx-5">
+                <div aria-label="Twitter" role="img">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#fff"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="feather feather-twitter"
+                  >
+                    <path
+                      d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"
+                    ></path>
+                  </svg>
+                </div>
+              </a>
+              <a href="javascript:void(0)" class="mx-5">
+                <div aria-label="Instagram" role="img">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#fff"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="feather feather-instagram"
+                  >
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"
+                    ></rect>
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"
+                    ></path>
+                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                  </svg>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="relative mt-16 sm:mb-32">
+        <div class="rounded-lg overflow-hidden shadow-md bg-secondary-500/90">
+          <div class="absolute -mt-20 w-full flex justify-center">
+            <div class="h-32 w-32">
+              <Image
+                src={juanele}
+                alt="Juanele Tamal"
+                role="img"
+                class="rounded-full object-cover h-full w-full shadow-md"
+              />
+            </div>
+          </div>
+          <div class="px-6 mt-16">
+            <h1 class="font-bold text-3xl text-center mb-1 text-white">
+              Juanele Tamal
+            </h1>
+            <p class="text-center text-white text-base pt-3 font-normal">
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+              eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
+              enim ad minim veniam, quis nostrud exercitation ullamco laboris
+              nisi ut aliquip ex ea commodo consequat.
+            </p>
+            <div class="w-full flex justify-center pt-5 pb-5">
+              <a href="javascript:void(0)" class="mx-5">
+                <div aria-label="Github" role="img">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#fff"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="feather feather-github"
+                  >
+                    <path
+                      d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"
+                    ></path>
+                  </svg>
+                </div>
+              </a>
+              <a href="javascript:void(0)" class="mx-5">
+                <div aria-label="Twitter" role="img">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#fff"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="feather feather-twitter"
+                  >
+                    <path
+                      d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"
+                    ></path>
+                  </svg>
+                </div>
+              </a>
+              <a href="javascript:void(0)" class="mx-5">
+                <div aria-label="Instagram" role="img">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#fff"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="feather feather-instagram"
+                  >
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"
+                    ></rect>
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"
+                    ></path>
+                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                  </svg>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</DefaultLayout>
