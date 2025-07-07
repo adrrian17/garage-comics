@@ -9,10 +9,12 @@
   "scripts": {
     "dev": "bun --bun concurrently \"bun:dev:web\" \"bun:dev:api\"",
     "dev:web": "cd apps/web && bun run dev",
-    "dev:api": "cd apps/api && go run ."
+    "dev:api": "cd apps/api && go run .",
+    "prepare": "husky"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "husky": "^9.1.7"
   },
   "dependencies": {
     "@lucide/astro": "^0.525.0"
