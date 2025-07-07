@@ -1,10 +1,14 @@
 ---
-import { getCollection, getEntry } from "astro:content";
+import { getCollection } from "astro:content";
 import ComicCard from "../components/ComicCard.astro";
 
-const comics = await getCollection("comics");
+const products = await getCollection("products");
 ---
 
-<div class="grid grid-cols-2 gap-12 lg:grid-cols-4">
-  {comics.map((comic) => <ComicCard comic={comic} />)}
+<div class="grid grid-cols-2 gap-12 lg:grid-cols-3">
+  {products.length > 0 ? (
+    products.map((product) => <ComicCard product={product} />)
+  ) : (
+    <p class="col-span-full text-center">No hay productos disponibles actualmente.</p>
+  )}
 </div>

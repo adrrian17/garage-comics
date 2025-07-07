@@ -1,25 +1,30 @@
 ---
 import { Image } from "astro:assets";
+import { getCollection } from "astro:content";
 
-const { comic } = Astro.props;
+const { product } = Astro.props;
+const prices = await getCollection("prices");
+const price = prices.find(
+	(price) => price.data.id === product.data.default_price,
+);
 ---
 
 <div class="flex flex-col">
-  <a href=`/comics/${comic.slug}`>
+  <a href={`/comics/${product.id}`}>
     <figure>
-      <Image
-        class="shadow-md rounded-xl"
-        src={comic.data.image.src}
-        alt={comic.data.image.alt}
-        loading="lazy"
-        decoding="async"
-        width={350}
-        height={500}
-      />
+        <Image
+          class="shadow-md rounded-md"
+          src={product.data.images[0]}
+          alt={product.data.name}
+          loading="lazy"
+          decoding="async"
+          width={500}
+          height={500}
+        />
     </figure>
   </a>
-  <div class="mt-4 mb-6 space-y-2 text-secondary-400">
-    <h1 class="text-xl font-bold">{comic.data.title}</h1>
-    <p class="text-secondary-300">{`$${comic.data.price} MXN`}</p>
+  <div class="mt-4 mb-6 space-y-2">
+    <h1 class="text-xl font-bold">{product.data.name}</h1>
+    <p class="text-sm">{`$${price?.data.unit_amount / 100} MXN`}</p>
   </div>
 </div>
