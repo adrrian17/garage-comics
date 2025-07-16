@@ -1,4 +1,4 @@
-import { defineCollection } from "astro:content";
+import { defineCollection, z } from "astro:content";
 import Stripe from "stripe";
 import { stripePriceLoader, stripeProductLoader } from "stripe-astro-loader";
 
@@ -12,4 +12,22 @@ const prices = defineCollection({
   loader: stripePriceLoader(stripe),
 });
 
-export const collections = { products, prices };
+const authors = defineCollection({
+  type: "data",
+  schema: z.object({
+    name: z.string(),
+    role: z.string(),
+    image: z.object({
+      src: z.string(),
+      alt: z.string(),
+    }),
+    socialMedia: z.array(
+      z.object({
+        url: z.string(),
+        name: z.string(),
+      })
+    ),
+  }),
+});
+
+export const collections = { products, prices, authors };
