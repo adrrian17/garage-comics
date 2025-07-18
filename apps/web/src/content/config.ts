@@ -1,4 +1,4 @@
-import { defineCollection, z } from "astro:content";
+import { type CollectionEntry, defineCollection, z } from "astro:content";
 import Stripe from "stripe";
 import { stripePriceLoader, stripeProductLoader } from "stripe-astro-loader";
 
@@ -25,9 +25,14 @@ const authors = defineCollection({
       z.object({
         url: z.string(),
         name: z.string(),
-      })
+      }),
     ),
   }),
 });
+
+// Tipos individuales de las colecciones
+export type Product = CollectionEntry<"products">;
+export type Price = CollectionEntry<"prices">;
+export type Author = CollectionEntry<"authors">;
 
 export const collections = { products, prices, authors };

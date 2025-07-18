@@ -1,17 +1,17 @@
 ---
 import { Image } from "astro:assets";
 import Logo from "../images/logo.png";
-import CartButton from "./CartButton.astro";
+import CartButton from "./CartButton.tsx";
 
 const { pathname } = Astro.url;
 
 const links = [
-	{ href: "/", name: "Inicio" },
-	{ href: "/expositores", name: "Expositores" },
-	{ href: "/comics", name: "Cómics" },
-	{ href: "/reglas", name: "Reglas" },
-	{ href: "/faqs", name: "FAQs" },
-	{ href: "/staff", name: "Staff" },
+  { href: "/", name: "Inicio" },
+  { href: "/expositores", name: "Expositores" },
+  { href: "/comics", name: "Cómics" },
+  { href: "/reglas", name: "Reglas" },
+  { href: "/faqs", name: "FAQs" },
+  { href: "/staff", name: "Staff" },
 ];
 ---
 
@@ -48,9 +48,9 @@ const links = [
         }
       </nav>
 
-      <div class="flex items-center space-x-4">
+      <div class="flex items-center">
         <div class="hidden md:block">
-          <CartButton />
+          <CartButton client:load />
         </div>
 
         <!-- Mobile Menu Button -->
@@ -117,7 +117,7 @@ const links = [
       }
       <div class="pt-4 pb-3 border-t border-gray-200 dark:border-gray-700">
         <div class="flex items-center px-2">
-          <CartButton />
+          <CartButton client:load />
         </div>
       </div>
     </div>
