@@ -1,7 +1,7 @@
-import { actions } from "astro:actions";
 import { navigate } from "astro:transitions/client";
 import { ShoppingCart } from "lucide-react";
 import { useState } from "react";
+import { server } from "@/actions";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -20,7 +20,18 @@ export default function CartButton() {
 
   const [loading, setLoading] = useState(false);
 
-  const handleClick = async () => {};
+  const handleClick = async () => {
+    setLoading(true);
+    const { data, error } = await server.generateCheckout(products);
+
+    if (!error && data?.url) {
+      navigate(data.url);
+    }
+
+    if (error) {
+      setLoading(false);
+    }
+  };
 
   return (
     <Sheet>
