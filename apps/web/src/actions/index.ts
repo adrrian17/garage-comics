@@ -26,8 +26,8 @@ export const server = {
             payment_method_types: ["card", "oxxo"],
             line_items: lineItems,
             mode: "payment",
-            success_url: `http://localhost:4321/success?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `http://localhost:4321/cancel?session_id={CHECKOUT_SESSION_ID}`,
+            success_url: `${import.meta.env.SITE_URL || "http://localhost:4321"}/success?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${import.meta.env.SITE_URL || "http://localhost:4321"}/cancel?session_id={CHECKOUT_SESSION_ID}`,
             metadata: {
               products: JSON.stringify(input.map((item) => item.productId)),
             },
