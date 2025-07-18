@@ -39,13 +39,10 @@
   "overrides": [
     {
       "includes": ["*.astro"],
-      "linter": {
-        "rules": {
-          "style": {
-            "useConst": "off",
-            "useImportType": "off"
-          }
-        }
+      "formatter": {
+        "enabled": true,
+        "indentStyle": "space",
+        "indentWidth": 2
       }
     }
   ]
