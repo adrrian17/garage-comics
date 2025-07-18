@@ -1,8 +1,8 @@
 ---
-import "../styles/global.css";
+import "@/styles/global.css";
 
-import Footer from "../components/Footer.astro";
-import NavBar from "../components/NavBar.astro";
+import Footer from "@/components/Footer.astro";
+import NavBar from "@/components/NavBar.astro";
 ---
 
 <html lang="es" data-theme="light" class="bg-brand-500">
@@ -14,9 +14,11 @@ import NavBar from "../components/NavBar.astro";
 
     <title>Garage Cómics</title>
   </head>
-  <body class="container max-w-screen-lg px-8 mx-auto">
-    <NavBar />
-    <slot />
-    <Footer />
+  <body>
+    <main class="mx-auto max-w-4xl px-4">
+      <NavBar />
+      <slot />
+      <Footer />
+    </main>
   </body>
 </html>
