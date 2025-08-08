@@ -104,9 +104,23 @@ garage-comics/
 Create a `.env` file in `apps/web/` based on `.env.example`:
 
 ```env
+# Stripe Configuration
 STRIPE_SECRET_KEY=sk_test_...
 STRIPE_PUBLISHABLE_KEY=pk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+
+# Application Configuration
+PUBLIC_COUNTDOWN_DATE=2025-08-30T11:59:59
 ```
+
+#### Variable Descriptions
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `STRIPE_SECRET_KEY` | Stripe secret key for server-side operations | ✅ |
+| `STRIPE_PUBLISHABLE_KEY` | Stripe publishable key for client-side operations | ✅ |
+| `STRIPE_WEBHOOK_SECRET` | Webhook endpoint secret for verifying Stripe events | ✅ |
+| `PUBLIC_COUNTDOWN_DATE` | Public countdown date for the application | ✅ |
 
 ### Stripe Integration
 
@@ -114,6 +128,52 @@ The project uses Stripe for:
 - Product and price management
 - Payment processing
 - Dynamic data loading with `stripe-astro-loader`
+- Webhook handling for payment events
+
+#### Setting up Stripe Webhooks Locally
+
+To test Stripe webhooks in your local development environment:
+
+1. **Install Stripe CLI:**
+   ```bash
+   # macOS
+   brew install stripe/stripe-cli/stripe
+   
+   # Or download from https://github.com/stripe/stripe-cli/releases
+   ```
+
+2. **Login to Stripe:**
+   ```bash
+   stripe login
+   ```
+
+3. **Forward webhooks to your local server:**
+   ```bash
+   stripe listen --forward-to localhost:4321/api/webhooks/stripe
+   ```
+
+4. **Copy the webhook signing secret:**
+   The Stripe CLI will display a webhook signing secret (starts with `whsec_`). Copy this value and add it to your `.env` file as `STRIPE_WEBHOOK_SECRET`.
+
+5. **Test the webhook:**
+   ```bash
+   # In another terminal, trigger a test event
+   stripe trigger payment_intent.succeeded
+   ```
+
+#### Supported Webhook Events
+
+The webhook endpoint handles the following Stripe events:
+
+- `payment_intent.succeeded` - Processes successful payments and creates transfers to connected accounts
+- `account.updated` - Configures payout settings for verified connected accounts
+- `payout.paid` - Logs successful payout processing
+- `payout.failed` - Logs failed payout attempts
+
+#### Webhook URL
+
+- **Local Development**: `http://localhost:4321/api/webhooks/stripe`
+- **Production**: `https://yourdomain.com/api/webhooks/stripe`
 
 ## 🧪 Development
 
