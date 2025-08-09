@@ -11,6 +11,7 @@ type CartState = {
   }[];
   total: number;
   addProduct: (product: Product, price: Price) => void;
+  clearCart: () => void;
 };
 
 export const useCartStore = create<CartState>()(
@@ -26,6 +27,11 @@ export const useCartStore = create<CartState>()(
             productName: product.data.name,
           });
           state.total += price.data.unit_amount;
+        }),
+      clearCart: () =>
+        set((state) => {
+          state.line_items = [];
+          state.total = 0;
         }),
     })),
     { name: "cart-store" },

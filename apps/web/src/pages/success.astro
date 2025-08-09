@@ -26,3 +26,10 @@ import DefaultLayout from "@/layouts/DefaultLayout.astro";
     </div>
   </div>
 </DefaultLayout>
+
+<script>
+  import { useCartStore } from '@/stores/cart-store';
+  
+  const clearCart = useCartStore.getState().clearCart;
+  clearCart();
+</script>
