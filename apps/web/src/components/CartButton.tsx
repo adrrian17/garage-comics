@@ -19,8 +19,6 @@ export default function CartButton() {
   const total = useCartStore((state) => state.total);
   const removeProduct = useCartStore((state) => state.removeProduct);
 
-  console.log(products);
-
   const [loading, setLoading] = useState(false);
 
   const handleClick = async () => {
