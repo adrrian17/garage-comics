@@ -1,0 +1,97 @@
+[
+  {
+    "id": "maria-gonzalez",
+    "name": "María González",
+    "role": "Ilustradora y Guionista",
+    "image": {
+      "src": "https://picsum.photos/400/400?random=1",
+      "alt": "María González - Ilustradora y Guionista"
+    },
+    "socialMedia": [
+      {
+        "url": "https://twitter.com/mariagonzalez_comics",
+        "name": "twitter"
+      },
+      {
+        "url": "https://instagram.com/mariagonzalez_art",
+        "name": "instagram"
+      }
+    ]
+  },
+  {
+    "id": "carlos-rodriguez",
+    "name": "Carlos Rodríguez",
+    "role": "Dibujante",
+    "image": {
+      "src": "https://picsum.photos/400/400?random=2",
+      "alt": "Carlos Rodríguez - Dibujante"
+    },
+    "socialMedia": [
+      {
+        "url": "https://instagram.com/carlosrod_comics",
+        "name": "instagram"
+      },
+      {
+        "url": "https://artstation.com/carlosrodriguez",
+        "name": "artstation"
+      }
+    ]
+  },
+  {
+    "id": "ana-martinez",
+    "name": "Ana Martínez",
+    "role": "Colorista",
+    "image": {
+      "src": "https://picsum.photos/400/400?random=3",
+      "alt": "Ana Martínez - Colorista"
+    },
+    "socialMedia": [
+      {
+        "url": "https://twitter.com/anamartinez_colors",
+        "name": "twitter"
+      },
+      {
+        "url": "https://behance.net/anamartinez",
+        "name": "behance"
+      }
+    ]
+  },
+  {
+    "id": "luis-fernandez",
+    "name": "Luis Fernández",
+    "role": "Guionista",
+    "image": {
+      "src": "https://picsum.photos/400/400?random=4",
+      "alt": "Luis Fernández - Guionista"
+    },
+    "socialMedia": [
+      {
+        "url": "https://twitter.com/luisfernandez_writer",
+        "name": "twitter"
+      }
+    ]
+  },
+  {
+    "id": "sofia-lopez",
+    "name": "Sofía López",
+    "role": "Ilustradora",
+    "image": {
+      "src": "https://picsum.photos/400/400?random=5",
+      "alt": "Sofía López - Ilustradora"
+    },
+    "socialMedia": [
+      {
+        "url": "https://instagram.com/sofia_lopez_art",
+        "name": "instagram"
+      },
+      {
+        "url": "https://twitter.com/sofialopez_comics",
+        "name": "twitter"
+      },
+      {
+        "url": "https://deviantart.com/sofialopez",
+        "name": "deviantart"
+      }
+    ]
+  }
+]

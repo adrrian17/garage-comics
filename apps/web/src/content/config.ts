@@ -1,4 +1,5 @@
 import { type CollectionEntry, defineCollection, z } from "astro:content";
+import { file } from "astro/loaders";
 import Stripe from "stripe";
 import { stripePriceLoader, stripeProductLoader } from "stripe-astro-loader";
 
@@ -13,8 +14,9 @@ const prices = defineCollection({
 });
 
 const authors = defineCollection({
-  type: "data",
+  loader: file("src/content/authors.json"),
   schema: z.object({
+    id: z.string(),
     name: z.string(),
     role: z.string(),
     image: z.object({
