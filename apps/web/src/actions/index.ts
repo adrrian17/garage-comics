@@ -29,7 +29,7 @@ export const server = {
             success_url: `${import.meta.env.SITE_URL || "http://localhost:4321"}/success?session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${import.meta.env.SITE_URL || "http://localhost:4321"}/cancel?session_id={CHECKOUT_SESSION_ID}`,
             metadata: {
-              products: JSON.stringify(input.map((item) => item.productId)),
+              products: JSON.stringify(input.map((item) => item.priceId)),
             },
           });
 

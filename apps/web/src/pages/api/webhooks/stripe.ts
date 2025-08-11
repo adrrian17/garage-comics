@@ -1,6 +1,9 @@
+export const prerender = false;
+
 import type { APIRoute } from "astro";
 
 import Stripe from "stripe";
+import { type OrderItem, sendOrderConfirmation } from "@/lib/email";
 
 const stripe = new Stripe(import.meta.env.STRIPE_SECRET_KEY);
 
@@ -47,16 +50,28 @@ export const POST: APIRoute = async ({ request }) => {
             );
           }
 
-          const products = JSON.parse(session.data[0].metadata.products);
+          const priceIds = JSON.parse(session.data[0].metadata.products);
+          const orderItems: OrderItem[] = [];
 
-          for (const product of products) {
-            const price = await stripe.prices.retrieve(product);
+          for (const priceId of priceIds) {
+            const price = await stripe.prices.retrieve(priceId);
 
             const amount = Number(price.unit_amount);
             if (Number.isNaN(amount)) {
-              console.error(`Invalid price for product ${product}`);
+              console.error(`Invalid price: ${priceId}`);
               continue;
             }
+
+            // Obtener información del producto para el email
+            const productInfo = await stripe.products.retrieve(
+              price.product as string,
+            );
+
+            orderItems.push({
+              productName: productInfo.name,
+              productImage: productInfo.images?.[0],
+              amount: amount,
+            });
 
             const paymentMethod = paymentIntent.payment_method_types[0];
             const paymentMethodDetails = await stripe.paymentMethods.retrieve(
@@ -89,7 +104,7 @@ export const POST: APIRoute = async ({ request }) => {
 
             if (!connectedAccountId) {
               console.error(
-                `No connected acount found for product ${price.product}`,
+                `No connected account found for product ${price.product}`,
               );
               continue;
             }
@@ -105,6 +120,33 @@ export const POST: APIRoute = async ({ request }) => {
             console.log(
               `Transfer created for product ${price.product}: ${roundedTransferAmount} MXN`,
             );
+          }
+
+          // Enviar email de confirmación
+          try {
+            const customerEmail = session.data[0].customer_details?.email;
+            const customerName = session.data[0].customer_details?.name;
+
+            if (customerEmail && orderItems.length > 0) {
+              await sendOrderConfirmation({
+                customerEmail,
+                customerName: customerName || undefined,
+                orderId: paymentIntent.id,
+                items: orderItems,
+                total: paymentIntent.amount,
+                paymentMethod: paymentIntent.payment_method_types[0],
+              });
+
+              console.log(`Order confirmation email sent to ${customerEmail}`);
+            } else {
+              console.log("No customer email found or no items to send");
+            }
+          } catch (emailError) {
+            console.error(
+              "Error sending order confirmation email:",
+              emailError,
+            );
+            // No lanzamos el error para evitar que falle el webhook
           }
         } catch (error) {
           console.error("Error processing payment intent:", error);
