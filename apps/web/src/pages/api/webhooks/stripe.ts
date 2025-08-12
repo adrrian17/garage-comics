@@ -1,11 +1,16 @@
 export const prerender = false;
 
+import { Redis } from "@upstash/redis";
 import type { APIRoute } from "astro";
-
 import Stripe from "stripe";
 import { type OrderItem, sendOrderConfirmation } from "@/lib/email";
 
 const stripe = new Stripe(import.meta.env.STRIPE_SECRET_KEY);
+
+const redis = new Redis({
+  url: import.meta.env.UPSTASH_REDIS_REST_URL,
+  token: import.meta.env.UPSTASH_REDIS_REST_TOKEN,
+});
 
 const STRIPE_CARD_FEE_PERCENT = 3.6;
 const STRIPE_OXXO_FEE_PERCENT = 3.6;
@@ -62,7 +67,6 @@ export const POST: APIRoute = async ({ request }) => {
               continue;
             }
 
-            // Obtener información del producto para el email
             const productInfo = await stripe.products.retrieve(
               price.product as string,
             );
@@ -70,6 +74,7 @@ export const POST: APIRoute = async ({ request }) => {
             orderItems.push({
               productName: productInfo.name,
               productImage: productInfo.images?.[0],
+              productSlug: productInfo.metadata.slug,
               amount: amount,
             });
 
@@ -122,7 +127,6 @@ export const POST: APIRoute = async ({ request }) => {
             );
           }
 
-          // Enviar email de confirmación
           try {
             const customerEmail = session.data[0].customer_details?.email;
             const customerName = session.data[0].customer_details?.name;
@@ -146,7 +150,49 @@ export const POST: APIRoute = async ({ request }) => {
               "Error sending order confirmation email:",
               emailError,
             );
-            // No lanzamos el error para evitar que falle el webhook
+          }
+
+          try {
+            const customerEmail = session.data[0].customer_details?.email;
+            const customerName = session.data[0].customer_details?.name;
+
+            if (customerEmail && orderItems.length > 0) {
+              const orderData = {
+                orderId: paymentIntent.id,
+                customerEmail,
+                customerName: customerName || null,
+                items: orderItems.map((item) => ({
+                  productName: item.productName,
+                  productImage: item.productImage,
+                  productSlug: item.productSlug,
+                  amount: item.amount,
+                })),
+                total: paymentIntent.amount,
+                paymentMethod: paymentIntent.payment_method_types[0],
+                createdAt: new Date().toISOString(),
+                sessionId: session.data[0].id,
+              };
+
+              await redis.set(`order:${paymentIntent.id}`, orderData);
+
+              await redis.sadd(
+                `customer:${customerEmail}:orders`,
+                paymentIntent.id,
+              );
+
+              console.log(
+                `Order data successfully saved to Upstash for ${customerEmail}`,
+              );
+            } else {
+              console.log(
+                "No customer email found or no items to save in Upstash",
+              );
+            }
+          } catch (upstashError) {
+            console.error(
+              `Failed to save order data to Upstash after retries for order ${paymentIntent.id}:`,
+              upstashError,
+            );
           }
         } catch (error) {
           console.error("Error processing payment intent:", error);

@@ -7,6 +7,7 @@ const resend = new Resend(import.meta.env.RESEND_API_KEY);
 export interface OrderItem {
   productName: string;
   productImage?: string;
+  productSlug: string;
   amount: number;
 }
 
