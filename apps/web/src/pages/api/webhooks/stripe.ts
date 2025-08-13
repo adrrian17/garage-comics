@@ -171,6 +171,7 @@ export const POST: APIRoute = async ({ request }) => {
                 paymentMethod: paymentIntent.payment_method_types[0],
                 createdAt: new Date().toISOString(),
                 sessionId: session.data[0].id,
+                processed: false,
               };
 
               await redis.set(`order:${paymentIntent.id}`, orderData);
