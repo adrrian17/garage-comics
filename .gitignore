@@ -1,3 +1,4 @@
 node_modules/
 /apps/web/.vercel
 .env
+.DS_Store
