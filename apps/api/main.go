@@ -1,6 +1,7 @@
 package main
 
 import (
+	"archive/zip"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -51,7 +52,7 @@ func watermarkPDFHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := r.ParseMultipartForm(10 << 20) // 10 MB max
+	err := r.ParseMultipartForm(500 << 20) // 500 MB max for multiple files
 
 	if err != nil {
 		log.Printf("Error parsing multipart form: %v", err)
@@ -61,31 +62,29 @@ func watermarkPDFHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	file, handler, err := r.FormFile("pdf")
+	files := r.MultipartForm.File["pdfs"]
 
-	if err != nil {
-		log.Printf("Error getting form file: %v", err)
+	if len(files) == 0 {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(ErrorResponse{Error: "PDF file is required"})
+		json.NewEncoder(w).Encode(ErrorResponse{Error: "At least one PDF file is required"})
 		return
 	}
 
-	defer file.Close()
-
-	if !strings.HasSuffix(strings.ToLower(handler.Filename), ".pdf") {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(ErrorResponse{Error: "File must be a PDF"})
-		return
-	}
-
-	watermarkText := r.FormValue("text")
+	watermarkText := r.FormValue("email")
+	reference := r.FormValue("reference")
 
 	if watermarkText == "" {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(ErrorResponse{Error: "Text parameter is required"})
+		json.NewEncoder(w).Encode(ErrorResponse{Error: "Email parameter is required"})
+		return
+	}
+
+	if reference == "" {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(ErrorResponse{Error: "Reference parameter is required"})
 		return
 	}
 
@@ -100,68 +99,144 @@ func watermarkPDFHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	timestamp := time.Now().Unix()
-	inputPath := filepath.Join(tmpDir, fmt.Sprintf("input_%d.pdf", timestamp))
-	outputPath := filepath.Join(tmpDir, fmt.Sprintf("output_%d.pdf", timestamp))
+	zipPath := filepath.Join(tmpDir, fmt.Sprintf("%s_%d.zip", reference, timestamp))
 
-	inputFile, err := os.Create(inputPath)
+	zipFile, err := os.Create(zipPath)
 
 	if err != nil {
-		log.Printf("Error creating input file: %v", err)
+		log.Printf("Error creating zip file: %v", err)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(ErrorResponse{Error: "Internal server error"})
 		return
 	}
 
-	_, err = io.Copy(inputFile, file)
+	defer zipFile.Close()
 
-	inputFile.Close()
-
-	if err != nil {
-		log.Printf("Error copying file: %v", err)
-		os.Remove(inputPath)
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(ErrorResponse{Error: "Error processing file"})
-		return
-	}
+	zipWriter := zip.NewWriter(zipFile)
+	defer zipWriter.Close()
 
 	watermarkDesc := "font:Helvetica, points:12, pos:bc, off:0 10, fillc:#808080, op:0.5, rot:0"
 
-	err = api.AddTextWatermarksFile(inputPath, outputPath, []string{}, true, watermarkText, watermarkDesc, nil)
-	if err != nil {
-		log.Printf("Error adding watermark: %v", err)
-		os.Remove(inputPath)
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(ErrorResponse{Error: "Error adding watermark to PDF"})
-		return
+	var filesToCleanup []string
+
+	for i, fileHeader := range files {
+		if !strings.HasSuffix(strings.ToLower(fileHeader.Filename), ".pdf") {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(ErrorResponse{Error: fmt.Sprintf("File '%s' must be a PDF", fileHeader.Filename)})
+			return
+		}
+
+		file, err := fileHeader.Open()
+
+		if err != nil {
+			log.Printf("Error opening file %s: %v", fileHeader.Filename, err)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(ErrorResponse{Error: fmt.Sprintf("Error processing file '%s'", fileHeader.Filename)})
+			return
+		}
+
+		defer file.Close()
+
+		inputPath := filepath.Join(tmpDir, fmt.Sprintf("input_%d_%d.pdf", timestamp, i))
+		outputPath := filepath.Join(tmpDir, fmt.Sprintf("output_%d_%d.pdf", timestamp, i))
+
+		filesToCleanup = append(filesToCleanup, inputPath, outputPath)
+
+		inputFile, err := os.Create(inputPath)
+
+		if err != nil {
+			log.Printf("Error creating input file: %v", err)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(ErrorResponse{Error: "Internal server error"})
+			return
+		}
+
+		_, err = io.Copy(inputFile, file)
+
+		inputFile.Close()
+
+		if err != nil {
+			log.Printf("Error copying file: %v", err)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(ErrorResponse{Error: "Error processing file"})
+			return
+		}
+
+		err = api.AddTextWatermarksFile(inputPath, outputPath, []string{}, true, watermarkText, watermarkDesc, nil)
+
+		if err != nil {
+			log.Printf("Error adding watermark to %s: %v", fileHeader.Filename, err)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(ErrorResponse{Error: fmt.Sprintf("Error adding watermark to '%s'", fileHeader.Filename)})
+			return
+		}
+
+		outputFile, err := os.Open(outputPath)
+
+		if err != nil {
+			log.Printf("Error opening output file: %v", err)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(ErrorResponse{Error: "Error reading processed file"})
+			return
+		}
+
+		zipEntry, err := zipWriter.Create(fileHeader.Filename)
+
+		if err != nil {
+			outputFile.Close()
+			log.Printf("Error creating zip entry: %v", err)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(ErrorResponse{Error: "Error creating zip file"})
+			return
+		}
+
+		_, err = io.Copy(zipEntry, outputFile)
+
+		outputFile.Close()
+
+		if err != nil {
+			log.Printf("Error writing to zip: %v", err)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(ErrorResponse{Error: "Error creating zip file"})
+			return
+		}
 	}
+
+	zipWriter.Close()
+	zipFile.Close()
 
 	defer func() {
-		os.Remove(inputPath)
-		os.Remove(outputPath)
+		for _, filePath := range filesToCleanup {
+			os.Remove(filePath)
+		}
+		os.Remove(zipPath)
 	}()
 
-	outputFile, err := os.Open(outputPath)
-
+	finalZipFile, err := os.Open(zipPath)
 	if err != nil {
-		log.Printf("Error opening output file: %v", err)
+		log.Printf("Error opening final zip file: %v", err)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(ErrorResponse{Error: "Error reading processed file"})
+		json.NewEncoder(w).Encode(ErrorResponse{Error: "Error reading zip file"})
 		return
 	}
+	defer finalZipFile.Close()
 
-	defer outputFile.Close()
+	w.Header().Set("Content-Type", "application/zip")
+	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s.zip\"", reference))
 
-	w.Header().Set("Content-Type", "application/pdf")
-	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"watermarked_%s\"", handler.Filename))
-
-	_, err = io.Copy(w, outputFile)
-
+	_, err = io.Copy(w, finalZipFile)
 	if err != nil {
-		log.Printf("Error sending file: %v", err)
+		log.Printf("Error sending zip file: %v", err)
 	}
 }
 
