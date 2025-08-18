@@ -13,7 +13,8 @@ This is a monorepo for the Garage Comics project, which includes a web applicati
 - **[Radix UI](https://www.radix-ui.com/)** - Accessible components
 
 ### Backend
-- **[Go](https://go.dev/)** - High-performance REST API
+- **[Go](https://go.dev/)** - High-performance REST API for PDF watermarking
+- **[pdfcpu](https://github.com/pdfcpu/pdfcpu)** - PDF processing and watermark application
 - **[Stripe API](https://stripe.com/docs/api)** - Payment integration
 
 ### Development Tools
@@ -56,7 +57,7 @@ This is a monorepo for the Garage Comics project, which includes a web applicati
 
    This will start:
    - 🌐 **Web App**: http://localhost:4321
-   - 🔌 **API**: http://localhost:1234
+   - 🔌 **PDF Watermark API**: http://localhost:1234
 
 ## 📜 Available Scripts
 
@@ -91,8 +92,9 @@ garage-comics/
 │   │   │   ├── stores/         # Global state (Zustand)
 │   │   │   └── styles/         # Global styles
 │   │   └── public/             # Static assets
-│   └── api/                    # Go API
-│       └── main.go             # HTTP server
+│   └── api/                    # Go PDF Watermark API
+│       ├── main.go             # HTTP server with watermark endpoints
+│       └── README.md           # API documentation
 ├── packages/                   # Shared packages (future)
 └── node_modules/               # Dependencies
 ```
@@ -216,11 +218,15 @@ bun run build
 
 ### API (Any Go Provider)
 
+The Go API provides PDF watermarking functionality:
+
 ```bash
 cd apps/api
 go build -o main .
 ./main
 ```
+
+See `apps/api/README.md` for detailed API documentation, endpoints, and usage examples.
 
 ## 🤝 Contributing
 
