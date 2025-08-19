@@ -21,7 +21,6 @@ export interface OrderMessage {
   paymentMethod: string;
   createdAt: string;
   sessionId: string;
-  processed: boolean;
 }
 
 interface ProcessOrderResponse {
