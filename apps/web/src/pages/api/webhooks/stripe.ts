@@ -1,16 +1,11 @@
 export const prerender = false;
 
-import { Redis } from "@upstash/redis";
+import amqp from "amqplib";
 import type { APIRoute } from "astro";
 import Stripe from "stripe";
 import { type OrderItem, sendOrderConfirmation } from "@/lib/email";
 
 const stripe = new Stripe(import.meta.env.STRIPE_SECRET_KEY);
-
-const redis = new Redis({
-  url: import.meta.env.UPSTASH_REDIS_REST_URL,
-  token: import.meta.env.UPSTASH_REDIS_REST_TOKEN,
-});
 
 const STRIPE_CARD_FEE_PERCENT = 3.6;
 const STRIPE_OXXO_FEE_PERCENT = 3.6;
@@ -152,12 +147,13 @@ export const POST: APIRoute = async ({ request }) => {
             );
           }
 
+          // Send order to RabbitMQ queue
           try {
             const customerEmail = session.data[0].customer_details?.email;
             const customerName = session.data[0].customer_details?.name;
 
             if (customerEmail && orderItems.length > 0) {
-              const orderData = {
+              const orderMessage = {
                 orderId: paymentIntent.id,
                 customerEmail,
                 customerName: customerName || null,
@@ -174,26 +170,33 @@ export const POST: APIRoute = async ({ request }) => {
                 processed: false,
               };
 
-              await redis.set(`order:${paymentIntent.id}`, orderData);
+              const rabbitmqUrl =
+                import.meta.env.RABBITMQ_URL ||
+                "amqp://guest:guest@localhost:5672";
+              const connection = await amqp.connect(rabbitmqUrl);
+              const channel = await connection.createChannel();
 
-              await redis.sadd(
-                `customer:${customerEmail}:orders`,
-                paymentIntent.id,
+              await channel.assertQueue("orders", { durable: true });
+
+              channel.sendToQueue(
+                "orders",
+                Buffer.from(JSON.stringify(orderMessage)),
+                { persistent: true },
               );
 
+              await channel.close();
+              await connection.close();
+
               console.log(
-                `Order data successfully saved to Upstash for ${customerEmail}`,
+                `Order ${paymentIntent.id} sent to RabbitMQ queue successfully`,
               );
             } else {
               console.log(
-                "No customer email found or no items to save in Upstash",
+                "No customer email found or no items to send to queue",
               );
             }
-          } catch (upstashError) {
-            console.error(
-              `Failed to save order data to Upstash after retries for order ${paymentIntent.id}:`,
-              upstashError,
-            );
+          } catch (queueError) {
+            console.error(`Error sending order to RabbitMQ queue:`, queueError);
           }
         } catch (error) {
           console.error("Error processing payment intent:", error);
