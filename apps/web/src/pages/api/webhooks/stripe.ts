@@ -1,9 +1,8 @@
 export const prerender = false;
 
-import amqp from "amqplib";
 import type { APIRoute } from "astro";
 import Stripe from "stripe";
-import { type OrderItem, sendOrderConfirmation } from "@/lib/email";
+import type { OrderItem } from "@/lib/email";
 
 const stripe = new Stripe(import.meta.env.STRIPE_SECRET_KEY);
 
@@ -14,6 +13,7 @@ const STRIPE_INTERNATIONAL_FEE_PERCENT = 0.5;
 const STRIPE_CURRENCY_CONVERSION_FEE_PERCENT = 2.0;
 
 const endpointSecret = import.meta.env.STRIPE_WEBHOOK_SECRET;
+const encoreApiUrl = import.meta.env.ENCORE_API_URL || "http://localhost:4000";
 
 export const POST: APIRoute = async ({ request }) => {
   try {
@@ -122,32 +122,7 @@ export const POST: APIRoute = async ({ request }) => {
             );
           }
 
-          try {
-            const customerEmail = session.data[0].customer_details?.email;
-            const customerName = session.data[0].customer_details?.name;
-
-            if (customerEmail && orderItems.length > 0) {
-              await sendOrderConfirmation({
-                customerEmail,
-                customerName: customerName || undefined,
-                orderId: paymentIntent.id,
-                items: orderItems,
-                total: paymentIntent.amount,
-                paymentMethod: paymentIntent.payment_method_types[0],
-              });
-
-              console.log(`Order confirmation email sent to ${customerEmail}`);
-            } else {
-              console.log("No customer email found or no items to send");
-            }
-          } catch (emailError) {
-            console.error(
-              "Error sending order confirmation email:",
-              emailError,
-            );
-          }
-
-          // Send order to RabbitMQ queue
+          // Send order to Encore orders service
           try {
             const customerEmail = session.data[0].customer_details?.email;
             const customerName = session.data[0].customer_details?.name;
@@ -167,36 +142,30 @@ export const POST: APIRoute = async ({ request }) => {
                 paymentMethod: paymentIntent.payment_method_types[0],
                 createdAt: new Date().toISOString(),
                 sessionId: session.data[0].id,
-                processed: false,
               };
 
-              const rabbitmqUrl =
-                import.meta.env.RABBITMQ_URL ||
-                "amqp://guest:guest@localhost:5672";
-              const connection = await amqp.connect(rabbitmqUrl);
-              const channel = await connection.createChannel();
+              const response = await fetch(`${encoreApiUrl}/orders`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(orderMessage),
+              });
 
-              await channel.assertQueue("orders", { durable: true });
+              if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+              }
 
-              channel.sendToQueue(
-                "orders",
-                Buffer.from(JSON.stringify(orderMessage)),
-                { persistent: true },
-              );
-
-              await channel.close();
-              await connection.close();
+              const result = await response.json();
 
               console.log(
-                `Order ${paymentIntent.id} sent to RabbitMQ queue successfully`,
+                `Order ${paymentIntent.id} sent to Encore successfully`,
               );
             } else {
-              console.log(
-                "No customer email found or no items to send to queue",
-              );
+              console.log("No items to send to Encore");
             }
-          } catch (queueError) {
-            console.error(`Error sending order to RabbitMQ queue:`, queueError);
+          } catch (encoreError) {
+            console.error(`Error sending order to Encore:`, encoreError);
           }
         } catch (error) {
           console.error("Error processing payment intent:", error);
