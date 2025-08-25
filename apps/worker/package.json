@@ -1,0 +1,28 @@
+{
+  "name": "garage-comics-worker",
+  "version": "1.0.0",
+  "description": "Worker para procesar pedidos desde RabbitMQ",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "amqplib": "^0.10.4",
+    "@aws-sdk/client-s3": "^3.515.0",
+    "form-data": "^4.0.0",
+    "node-fetch": "^3.3.2",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@types/amqplib": "^0.10.5",
+    "@types/node": "^20.11.24",
+    "tsx": "^4.7.1",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
