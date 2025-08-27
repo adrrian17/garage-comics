@@ -16,6 +16,9 @@ This is a monorepo for the Garage Comics project, which includes a web applicati
 - **[Go](https://go.dev/)** - High-performance REST API for PDF watermarking
 - **[pdfcpu](https://github.com/pdfcpu/pdfcpu)** - PDF processing and watermark application
 - **[Stripe API](https://stripe.com/docs/api)** - Payment integration
+- **[Node.js Worker](https://nodejs.org/)** - Background order processing with RabbitMQ
+- **[RabbitMQ](https://www.rabbitmq.com/)** - Message queue for order processing
+- **[Cloudflare R2](https://developers.cloudflare.com/r2/)** - File storage and signed URLs
 
 ### Development Tools
 - **[Bun](https://bun.sh/)** - Runtime and package manager
@@ -58,6 +61,7 @@ This is a monorepo for the Garage Comics project, which includes a web applicati
    This will start:
    - 🌐 **Web App**: http://localhost:4321
    - 🔌 **PDF Watermark API**: http://localhost:1234
+   - 📨 **Worker**: Background order processing (requires RabbitMQ)
 
 ## 📜 Available Scripts
 
@@ -65,9 +69,10 @@ This is a monorepo for the Garage Comics project, which includes a web applicati
 
 | Command | Description |
 |---------|-------------|
-| `bun run dev` | Start both servers (web + API) |
+| `bun run dev` | Start all services (web + API + worker) |
 | `bun run dev:web` | Start only the web server |
 | `bun run dev:api` | Start only the API server |
+| `bun run dev:worker` | Start only the worker |
 
 ### Web App (`apps/web`)
 
@@ -92,9 +97,14 @@ garage-comics/
 │   │   │   ├── stores/         # Global state (Zustand)
 │   │   │   └── styles/         # Global styles
 │   │   └── public/             # Static assets
-│   └── api/                    # Go PDF Watermark API
-│       ├── main.go             # HTTP server with watermark endpoints
-│       └── README.md           # API documentation
+│   ├── api/                    # Go PDF Watermark API
+│   │   ├── main.go             # HTTP server with watermark endpoints
+│   │   └── README.md           # API documentation
+│   └── worker/                 # Node.js Background Worker
+│       ├── src/                # Worker source code
+│       ├── templates/          # Email templates
+│       ├── Dockerfile          # Docker configuration
+│       └── README.md           # Worker documentation
 ├── packages/                   # Shared packages (future)
 └── node_modules/               # Dependencies
 ```
@@ -113,6 +123,15 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 
 # Application Configuration
 PUBLIC_COUNTDOWN_DATE=2025-08-30T11:59:59
+
+# Worker Configuration (apps/worker/.env)
+RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+R2_ACCOUNT_ID=your_account_id
+R2_ACCESS_KEY_ID=your_access_key_id
+R2_SECRET_ACCESS_KEY=your_secret_access_key
+R2_BUCKET_NAME=your_bucket_name
+R2_ENDPOINT=https://your_account_id.r2.cloudflarestorage.com
+API_URL=http://api:1234
 ```
 
 #### Variable Descriptions
@@ -123,6 +142,13 @@ PUBLIC_COUNTDOWN_DATE=2025-08-30T11:59:59
 | `STRIPE_PUBLISHABLE_KEY` | Stripe publishable key for client-side operations | ✅ |
 | `STRIPE_WEBHOOK_SECRET` | Webhook endpoint secret for verifying Stripe events | ✅ |
 | `PUBLIC_COUNTDOWN_DATE` | Public countdown date for the application | ✅ |
+| `RABBITMQ_URL` | RabbitMQ connection URL for worker | ✅ (worker) |
+| `R2_ACCOUNT_ID` | Cloudflare R2 account ID for file storage | ✅ (worker) |
+| `R2_ACCESS_KEY_ID` | Cloudflare R2 access key for authentication | ✅ (worker) |
+| `R2_SECRET_ACCESS_KEY` | Cloudflare R2 secret key for authentication | ✅ (worker) |
+| `R2_BUCKET_NAME` | Cloudflare R2 bucket name for file storage | ✅ (worker) |
+| `R2_ENDPOINT` | Cloudflare R2 endpoint URL | ✅ (worker) |
+| `API_URL` | Go API URL for PDF processing | ✅ (worker) |
 
 ### Stripe Integration
 
@@ -227,6 +253,29 @@ go build -o main .
 ```
 
 See `apps/api/README.md` for detailed API documentation, endpoints, and usage examples.
+
+### Worker (Docker/Node.js)
+
+The background worker processes orders from RabbitMQ:
+
+```bash
+# Local development
+cd apps/worker
+npm install
+npm run dev
+
+# Docker
+docker-compose up worker
+```
+
+The worker handles:
+- 📨 Order processing from RabbitMQ queue
+- ⬇️ PDF downloads from Cloudflare R2
+- 🔄 PDF watermarking via Go API
+- ⬆️ Processed file uploads to R2
+- 🔗 Signed URL generation (24h expiry)
+
+See `apps/worker/README.md` for detailed worker documentation and configuration.
 
 ## 🤝 Contributing
 
