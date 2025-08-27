@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 import type { Price, Product } from "@/content/config";
 
@@ -55,6 +55,19 @@ export const useCartStore = create<CartState>()(
           state.total = 0;
         }),
     })),
-    { name: "cart-store" },
+    {
+      name: "cart-store",
+      storage: createJSONStorage(() => {
+        // Return a storage object that gracefully handles SSR
+        if (typeof window === "undefined") {
+          return {
+            getItem: () => null,
+            setItem: () => {},
+            removeItem: () => {},
+          };
+        }
+        return localStorage;
+      }),
+    },
   ),
 );

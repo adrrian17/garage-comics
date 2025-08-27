@@ -30,6 +30,6 @@ const price = prices.find(
   <div class="mt-4 mb-6 space-y-2">
     <h1 class="text-xl font-bold">{product.data.name}</h1>
     <p class="text-sm">{`$${price.data.unit_amount / 100} MXN`}</p>
-    <AddToCartBtn product={product} price={price} client:load />
+    <AddToCartBtn product={product} price={price} client:only="react" />
   </div>
 </div>
