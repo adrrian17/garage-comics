@@ -8,9 +8,10 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "bun --bun concurrently \"bun:dev:web\" \"bun:dev:api\"",
+    "dev": "bun --bun concurrently \"bun:dev:web\" \"bun:dev:api\" \"bun:dev:worker\"",
     "dev:web": "cd apps/web && bun run dev",
     "dev:api": "cd apps/api && go run .",
+    "dev:worker": "cd apps/worker && npm run dev",
     "prepare": "husky"
   },
   "devDependencies": {
