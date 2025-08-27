@@ -6,19 +6,28 @@
   "type": "module",
   "scripts": {
     "start": "node dist/index.js",
-    "dev": "tsx watch src/index.ts",
-    "build": "tsc"
+    "dev": "dotenv -- tsx watch src/index.ts",
+    "build": "tsc",
+    "test:template": "dotenv -- tsx test-template.ts",
+    "test:worker": "dotenv -- tsx test-worker-simulation.ts",
+    "test:flow": "dotenv -- tsx test-complete-flow.ts",
+    "test:simple": "dotenv -- tsx test-flow-simple.ts"
   },
   "dependencies": {
-    "amqplib": "^0.10.4",
     "@aws-sdk/client-s3": "^3.515.0",
+    "@react-email/components": "^0.5.1",
+    "@react-email/render": "^1.2.1",
+    "amqplib": "^0.10.4",
     "form-data": "^4.0.0",
     "node-fetch": "^3.3.2",
-    "dotenv": "^16.4.5"
+    "react": "^19.1.1",
+    "resend": "^6.0.1"
   },
   "devDependencies": {
     "@types/amqplib": "^0.10.5",
     "@types/node": "^20.11.24",
+    "@types/react": "^19.1.11",
+    "dotenv-cli": "^10.0.0",
     "tsx": "^4.7.1",
     "typescript": "^5.3.3"
   },

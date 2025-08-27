@@ -1,24 +1,35 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 import {
   GetObjectCommand,
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { render } from "@react-email/render";
 import amqp from "amqplib";
 import FormData from "form-data";
 import fetch from "node-fetch";
-import type { OrderData, ProcessResult, WorkerConfig } from "./types.js";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import { Resend } from "resend";
+import { DownloadReadyEmail } from "./emails/DownloadReady.js";
+import type {
+  EmailConfirmationData,
+  OrderData,
+  ProcessResult,
+  WorkerConfig,
+} from "./types.js";
 
 // Configuration
 const config: WorkerConfig = {
   rabbitmq: {
     url: process.env.RABBITMQ_URL || "amqp://guest:guest@localhost:5672",
     queue: "orders",
+    downloadsQueue: "confirmation_emails",
   },
   r2: {
     accountId: process.env.R2_ACCOUNT_ID!,
@@ -30,6 +41,10 @@ const config: WorkerConfig = {
   api: {
     url: process.env.API_URL || "http://localhost:1234",
   },
+  resend: {
+    apiKey: process.env.RESEND_API_KEY!,
+    fromEmail: process.env.FROM_EMAIL || "hola@garagecomics.mx",
+  },
 };
 
 // Validate required environment variables
@@ -38,6 +53,7 @@ const requiredEnvVars = [
   "R2_ACCESS_KEY_ID",
   "R2_SECRET_ACCESS_KEY",
   "R2_ENDPOINT",
+  "RESEND_API_KEY",
 ];
 
 for (const envVar of requiredEnvVars) {
@@ -56,6 +72,9 @@ const s3Client = new S3Client({
     secretAccessKey: config.r2.secretAccessKey,
   },
 });
+
+// Initialize Resend client
+const resend = new Resend(config.resend.apiKey);
 
 class OrderWorker {
   private connection: any = null;
@@ -77,8 +96,11 @@ class OrderWorker {
       this.connection = await amqp.connect(config.rabbitmq.url);
       this.channel = await this.connection.createChannel();
 
-      // Ensure the queue exists
+      // Ensure the queues exist
       await this.channel.assertQueue(config.rabbitmq.queue, { durable: true });
+      await this.channel.assertQueue(config.rabbitmq.downloadsQueue, {
+        durable: true,
+      });
 
       console.log("✅ Connected to RabbitMQ successfully");
       return true;
@@ -180,6 +202,30 @@ class OrderWorker {
     }
   }
 
+  async generatePresignedUrl(key: string): Promise<string> {
+    try {
+      const command = new GetObjectCommand({
+        Bucket: "orders",
+        Key: key,
+      });
+
+      const presignedUrl = await getSignedUrl(s3Client, command, {
+        expiresIn: 24 * 60 * 60, // 24 hours in seconds
+      });
+
+      console.log(
+        `✅ Generated presigned URL for ${key} (expires in 24 hours)`,
+      );
+      return presignedUrl;
+    } catch (error) {
+      console.error(
+        `❌ Failed to generate presigned URL for ${key}:`,
+        (error as Error).message,
+      );
+      throw error;
+    }
+  }
+
   async uploadToR2(zipPath: string, orderId: string): Promise<string> {
     try {
       console.log(`⬆️ Uploading processed ZIP for order: ${orderId}`);
@@ -197,10 +243,112 @@ class OrderWorker {
       await s3Client.send(command);
 
       console.log(`✅ Uploaded processed ZIP: ${key}`);
-      return `https://orders.${config.r2.accountId}.r2.cloudflarestorage.com/${key}`;
+
+      // Generate presigned URL that expires in 24 hours
+      const presignedUrl = await this.generatePresignedUrl(key);
+
+      return presignedUrl;
     } catch (error) {
       console.error(
         `❌ Failed to upload ZIP for order ${orderId}:`,
+        (error as Error).message,
+      );
+      throw error;
+    }
+  }
+
+  async sendEmailConfirmation(
+    orderData: OrderData,
+    presignedUrl: string,
+  ): Promise<void> {
+    try {
+      console.log(
+        `📧 Sending email confirmation for order: ${orderData.orderId}`,
+      );
+
+      const expiresAt = new Date(
+        Date.now() + 24 * 60 * 60 * 1000,
+      ).toISOString();
+
+      const confirmationData: EmailConfirmationData = {
+        orderId: orderData.orderId,
+        customerEmail: orderData.customerEmail,
+        presignedUrl,
+        expiresAt,
+        items: orderData.items,
+        total: orderData.total,
+        timestamp: orderData.timestamp,
+      };
+
+      const message = JSON.stringify(confirmationData);
+
+      this.channel.sendToQueue(
+        config.rabbitmq.downloadsQueue,
+        Buffer.from(message),
+        { persistent: true },
+      );
+
+      console.log(
+        `✅ Email confirmation queued for ${orderData.customerEmail}`,
+      );
+    } catch (error) {
+      console.error(
+        `❌ Failed to send email confirmation for order ${orderData.orderId}:`,
+        (error as Error).message,
+      );
+      throw error;
+    }
+  }
+
+  async generateEmailTemplate(emailData: EmailConfirmationData): Promise<{
+    subject: string;
+    html: string;
+  }> {
+    const subject = `¡Tu pedido #${emailData.orderId} está listo para descargar!`;
+
+    // Transform the order items to match the DownloadReady template format
+    const downloadItems = emailData.items.map((item) => ({
+      productName: item.productSlug,
+    }));
+
+    const html = await render(
+      DownloadReadyEmail({
+        customerEmail: emailData.customerEmail,
+        orderId: emailData.orderId,
+        items: downloadItems,
+        downloadUrl: emailData.presignedUrl,
+      }),
+    );
+
+    return { subject, html };
+  }
+
+  async processEmailConfirmation(
+    emailData: EmailConfirmationData,
+  ): Promise<void> {
+    try {
+      console.log(
+        `📧 Processing email confirmation for order: ${emailData.orderId}`,
+      );
+
+      const { subject, html } = await this.generateEmailTemplate(emailData);
+
+      const result = await resend.emails.send({
+        from: config.resend.fromEmail,
+        to: emailData.customerEmail,
+        subject,
+        html,
+      });
+
+      if (result.error) {
+        throw new Error(`Resend error: ${result.error.message}`);
+      }
+
+      console.log(`✅ Email sent successfully to ${emailData.customerEmail}`);
+      console.log(`📬 Email ID: ${result.data?.id}`);
+    } catch (error) {
+      console.error(
+        `❌ Failed to send email for order ${emailData.orderId}:`,
         (error as Error).message,
       );
       throw error;
@@ -297,16 +445,17 @@ class OrderWorker {
       );
       filesToCleanup.push(zipPath);
 
-      // Upload processed ZIP to R2
-      const uploadUrl = await this.uploadToR2(zipPath, orderData.orderId);
+      // Upload processed ZIP to R2 and get presigned URL
+      const presignedUrl = await this.uploadToR2(zipPath, orderData.orderId);
+
+      // Send email confirmation with presigned URL
+      await this.sendEmailConfirmation(orderData, presignedUrl);
 
       console.log(`🎉 Order processed successfully!`);
-      console.log(`📁 ZIP available at: ${uploadUrl}`);
+      console.log(`📁 ZIP available at: ${presignedUrl}`);
+      console.log(`📧 Email confirmation sent to: ${orderData.customerEmail}`);
 
-      // TODO: Here you could send an email notification or update a database
-      // For now, we'll just log the success
-
-      return { success: true, uploadUrl };
+      return { success: true, presignedUrl };
     } catch (error) {
       console.error(
         `💥 Failed to process order ${orderData.orderId}:`,
@@ -325,7 +474,9 @@ class OrderWorker {
     }
 
     console.log(`🚀 Starting order processor worker...`);
-    console.log(`📡 Listening to queue: ${config.rabbitmq.queue}`);
+    console.log(`📡 Listening to queues:`);
+    console.log(`   - Orders: ${config.rabbitmq.queue}`);
+    console.log(`   - Emails: ${config.rabbitmq.downloadsQueue}`);
 
     // Clean up old temporary files on startup
     await this.cleanupOldFiles();
@@ -333,6 +484,7 @@ class OrderWorker {
     // Set prefetch to 1 to process one order at a time
     await this.channel.prefetch(1);
 
+    // Process orders
     this.channel.consume(config.rabbitmq.queue, async (msg: any) => {
       if (msg !== null) {
         try {
@@ -352,7 +504,34 @@ class OrderWorker {
           }
         } catch (error) {
           console.error(
-            "💥 Error processing message:",
+            "💥 Error processing order message:",
+            (error as Error).message,
+          );
+          // Reject and requeue the message
+          this.channel!.nack(msg, false, true);
+        }
+      }
+    });
+
+    // Process email confirmations
+    this.channel.consume(config.rabbitmq.downloadsQueue, async (msg: any) => {
+      if (msg !== null) {
+        try {
+          const emailData: EmailConfirmationData = JSON.parse(
+            msg.content.toString(),
+          );
+
+          // Process the email confirmation
+          await this.processEmailConfirmation(emailData);
+
+          // Acknowledge the message (remove from queue)
+          this.channel!.ack(msg);
+          console.log(
+            `✅ Email confirmation ${emailData.orderId} acknowledged`,
+          );
+        } catch (error) {
+          console.error(
+            "💥 Error processing email confirmation:",
             (error as Error).message,
           );
           // Reject and requeue the message

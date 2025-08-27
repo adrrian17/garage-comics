@@ -15,13 +15,25 @@ export interface OrderData {
 export interface ProcessResult {
   success: boolean;
   uploadUrl?: string;
+  presignedUrl?: string;
   error?: string;
+}
+
+export interface EmailConfirmationData {
+  orderId: string;
+  customerEmail: string;
+  presignedUrl: string;
+  expiresAt: string;
+  items: OrderItem[];
+  total: number;
+  timestamp: string;
 }
 
 export interface WorkerConfig {
   rabbitmq: {
     url: string;
     queue: string;
+    downloadsQueue: string;
   };
   r2: {
     accountId: string;
@@ -32,5 +44,9 @@ export interface WorkerConfig {
   };
   api: {
     url: string;
+  };
+  resend: {
+    apiKey: string;
+    fromEmail: string;
   };
 }
