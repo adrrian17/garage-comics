@@ -21,7 +21,7 @@ This is a monorepo for the Garage Comics project, which includes a web applicati
 - **[Cloudflare R2](https://developers.cloudflare.com/r2/)** - File storage and signed URLs
 
 ### Development Tools
-- **[Bun](https://bun.sh/)** - Runtime and package manager
+- **[pnpm](https://pnpm.io/)** - Fast, disk space efficient package manager
 - **[Biome](https://biomejs.dev/)** - Linter and formatter
 - **[Husky](https://typicode.github.io/husky/)** - Git hooks
 - **[TypeScript](https://www.typescriptlang.org/)** - Static typing
@@ -30,7 +30,7 @@ This is a monorepo for the Garage Comics project, which includes a web applicati
 
 ### Prerequisites
 
-- [Bun](https://bun.sh/) >= 1.0
+- [pnpm](https://pnpm.io/) >= 8.0
 - [Go](https://go.dev/) >= 1.21
 - [Git](https://git-scm.com/)
 
@@ -44,7 +44,7 @@ This is a monorepo for the Garage Comics project, which includes a web applicati
 
 2. **Install dependencies:**
    ```bash
-   bun install
+   pnpm install
    ```
 
 3. **Configure environment variables:**
@@ -55,7 +55,7 @@ This is a monorepo for the Garage Comics project, which includes a web applicati
 
 4. **Start development servers:**
    ```bash
-   bun run dev
+   pnpm run dev
    ```
 
    This will start:
@@ -69,20 +69,20 @@ This is a monorepo for the Garage Comics project, which includes a web applicati
 
 | Command | Description |
 |---------|-------------|
-| `bun run dev` | Start all services (web + API + worker) |
-| `bun run dev:web` | Start only the web server |
-| `bun run dev:api` | Start only the API server |
-| `bun run dev:worker` | Start only the worker |
+| `pnpm run dev` | Start all services (web + API + worker) |
+| `pnpm run dev:web` | Start only the web server |
+| `pnpm run dev:api` | Start only the API server |
+| `pnpm run dev:worker` | Start only the worker |
 
 ### Web App (`apps/web`)
 
 | Command | Description |
 |---------|-------------|
-| `bun run dev` | Astro development server |
-| `bun run build` | Production build |
-| `bun run preview` | Preview build |
-| `bun run lint` | Run Biome linter |
-| `bun run lint:fix` | Fix linting errors |
+| `pnpm run dev` | Astro development server |
+| `pnpm run build` | Production build |
+| `pnpm run preview` | Preview build |
+| `pnpm run lint` | Run Biome linter |
+| `pnpm run lint:fix` | Fix linting errors |
 
 ## 📁 Project Structure
 
@@ -211,10 +211,10 @@ The project uses Biome to maintain code quality:
 
 ```bash
 # Check code
-bun run lint
+pnpm run lint
 
 # Auto-fix issues
-bun run lint:fix
+pnpm run lint:fix
 ```
 
 ### Git Hooks
@@ -239,7 +239,7 @@ Husky is configured to run linting before each commit:
 The project is configured for Vercel deployment:
 
 ```bash
-bun run build
+pnpm run build
 ```
 
 ### API (Any Go Provider)
@@ -301,4 +301,4 @@ This project is licensed under the [MIT License](LICENSE).
 - [Astro](https://astro.build/) for the amazing framework
 - [Stripe](https://stripe.com/) for payment integration
 - [Tailwind CSS](https://tailwindcss.com/) for the design system
-- [Bun](https://bun.sh/) for development speed
+- [pnpm](https://pnpm.io/) for fast and efficient package management
