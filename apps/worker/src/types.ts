@@ -4,6 +4,24 @@ export interface OrderItem {
   price: number;
 }
 
+export interface OrderConfirmationItem {
+  productName: string;
+  productImage?: string;
+  productSlug: string;
+  amount: number;
+}
+
+export interface OrderConfirmationData {
+  orderId: string;
+  customerEmail: string;
+  customerName?: string;
+  items: OrderConfirmationItem[];
+  total: number;
+  paymentMethod: string;
+  createdAt: string;
+  sessionId: string;
+}
+
 export interface OrderData {
   orderId: string;
   customerEmail: string;
@@ -34,6 +52,7 @@ export interface WorkerConfig {
     url: string;
     queue: string;
     downloadsQueue: string;
+    confirmationsQueue: string;
   };
   r2: {
     accountId: string;

@@ -16,12 +16,13 @@ import {
 export interface OrderItem {
   productName: string;
   productImage?: string;
+  productSlug: string;
   amount: number;
 }
 
 export interface OrderConfirmationEmailProps {
   customerEmail: string;
-  customerName?: string;
+  customerName?: string | undefined;
   orderId: string;
   items: OrderItem[];
   total: number;

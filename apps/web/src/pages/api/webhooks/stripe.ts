@@ -3,9 +3,15 @@ export const prerender = false;
 import amqp from "amqplib";
 import type { APIRoute } from "astro";
 import Stripe from "stripe";
-import { type OrderItem, sendOrderConfirmation } from "@/lib/email";
 
 const stripe = new Stripe(import.meta.env.STRIPE_SECRET_KEY);
+
+export interface OrderItem {
+  productName: string;
+  productImage?: string;
+  productSlug: string;
+  amount: number;
+}
 
 const STRIPE_CARD_FEE_PERCENT = 3.6;
 const STRIPE_OXXO_FEE_PERCENT = 3.6;
@@ -122,28 +128,50 @@ export const POST: APIRoute = async ({ request }) => {
             );
           }
 
+          // Send order confirmation to RabbitMQ queue
           try {
             const customerEmail = session.data[0].customer_details?.email;
             const customerName = session.data[0].customer_details?.name;
 
             if (customerEmail && orderItems.length > 0) {
-              await sendOrderConfirmation({
-                customerEmail,
-                customerName: customerName || undefined,
+              const confirmationMessage = {
                 orderId: paymentIntent.id,
+                customerEmail,
+                customerName: customerName || null,
                 items: orderItems,
                 total: paymentIntent.amount,
                 paymentMethod: paymentIntent.payment_method_types[0],
-              });
+                createdAt: new Date().toISOString(),
+                sessionId: session.data[0].id,
+              };
 
-              console.log(`Order confirmation email sent to ${customerEmail}`);
+              const rabbitmqUrl =
+                import.meta.env.RABBITMQ_URL ||
+                "amqp://guest:guest@localhost:5672";
+              const connection = await amqp.connect(rabbitmqUrl);
+              const channel = await connection.createChannel();
+
+              await channel.assertQueue("confirmations", { durable: true });
+
+              channel.sendToQueue(
+                "confirmations",
+                Buffer.from(JSON.stringify(confirmationMessage)),
+                { persistent: true },
+              );
+
+              await channel.close();
+              await connection.close();
+
+              console.log(
+                `Order confirmation sent to RabbitMQ queue for ${customerEmail}`,
+              );
             } else {
               console.log("No customer email found or no items to send");
             }
-          } catch (emailError) {
+          } catch (queueError) {
             console.error(
-              "Error sending order confirmation email:",
-              emailError,
+              "Error sending order confirmation to RabbitMQ queue:",
+              queueError,
             );
           }
 

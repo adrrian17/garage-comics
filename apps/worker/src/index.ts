@@ -17,8 +17,10 @@ import FormData from "form-data";
 import fetch from "node-fetch";
 import { Resend } from "resend";
 import { DownloadReadyEmail } from "./emails/DownloadReady.js";
+import { OrderConfirmationEmail } from "./emails/OrderConfirmation.js";
 import type {
   EmailConfirmationData,
+  OrderConfirmationData,
   OrderData,
   ProcessResult,
   WorkerConfig,
@@ -30,6 +32,7 @@ const config: WorkerConfig = {
     url: process.env.RABBITMQ_URL || "amqp://guest:guest@localhost:5672",
     queue: "orders",
     downloadsQueue: "confirmation_emails",
+    confirmationsQueue: "confirmations",
   },
   r2: {
     accountId: process.env.R2_ACCOUNT_ID!,
@@ -99,6 +102,9 @@ class OrderWorker {
       // Ensure the queues exist
       await this.channel.assertQueue(config.rabbitmq.queue, { durable: true });
       await this.channel.assertQueue(config.rabbitmq.downloadsQueue, {
+        durable: true,
+      });
+      await this.channel.assertQueue(config.rabbitmq.confirmationsQueue, {
         durable: true,
       });
 
@@ -355,6 +361,51 @@ class OrderWorker {
     }
   }
 
+  async processOrderConfirmation(
+    confirmationData: OrderConfirmationData,
+  ): Promise<void> {
+    try {
+      console.log(
+        `📧 Processing order confirmation email for order: ${confirmationData.orderId}`,
+      );
+
+      const subject = `¡Gracias por tu pedido #${confirmationData.orderId}!`;
+
+      const html = await render(
+        OrderConfirmationEmail({
+          customerEmail: confirmationData.customerEmail,
+          customerName: confirmationData.customerName,
+          orderId: confirmationData.orderId,
+          items: confirmationData.items,
+          total: confirmationData.total,
+          paymentMethod: confirmationData.paymentMethod,
+        }),
+      );
+
+      const result = await resend.emails.send({
+        from: config.resend.fromEmail,
+        to: confirmationData.customerEmail,
+        subject,
+        html,
+      });
+
+      if (result.error) {
+        throw new Error(`Resend error: ${result.error.message}`);
+      }
+
+      console.log(
+        `✅ Order confirmation email sent successfully to ${confirmationData.customerEmail}`,
+      );
+      console.log(`📬 Email ID: ${result.data?.id}`);
+    } catch (error) {
+      console.error(
+        `❌ Failed to send order confirmation email for order ${confirmationData.orderId}:`,
+        (error as Error).message,
+      );
+      throw error;
+    }
+  }
+
   async cleanupFiles(filePaths: string[]): Promise<void> {
     console.log(`🧹 Starting cleanup of ${filePaths.length} file(s)...`);
 
@@ -477,6 +528,7 @@ class OrderWorker {
     console.log(`📡 Listening to queues:`);
     console.log(`   - Orders: ${config.rabbitmq.queue}`);
     console.log(`   - Emails: ${config.rabbitmq.downloadsQueue}`);
+    console.log(`   - Confirmations: ${config.rabbitmq.confirmationsQueue}`);
 
     // Clean up old temporary files on startup
     await this.cleanupOldFiles();
@@ -539,6 +591,36 @@ class OrderWorker {
         }
       }
     });
+
+    // Process order confirmations
+    this.channel.consume(
+      config.rabbitmq.confirmationsQueue,
+      async (msg: any) => {
+        if (msg !== null) {
+          try {
+            const confirmationData: OrderConfirmationData = JSON.parse(
+              msg.content.toString(),
+            );
+
+            // Process the order confirmation
+            await this.processOrderConfirmation(confirmationData);
+
+            // Acknowledge the message (remove from queue)
+            this.channel!.ack(msg);
+            console.log(
+              `✅ Order confirmation ${confirmationData.orderId} acknowledged`,
+            );
+          } catch (error) {
+            console.error(
+              "💥 Error processing order confirmation:",
+              (error as Error).message,
+            );
+            // Reject and requeue the message
+            this.channel!.nack(msg, false, true);
+          }
+        }
+      },
+    );
 
     console.log("⏳ Waiting for orders to process...");
   }
