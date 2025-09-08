@@ -21,7 +21,7 @@ const STRIPE_CURRENCY_CONVERSION_FEE_PERCENT = 2.0;
 
 const endpointSecret = import.meta.env.STRIPE_WEBHOOK_SECRET;
 
-export const POST: APIRoute = async ({ request }) => {
+export const GET: APIRoute = async ({ request }) => {
   try {
     const body = await request.text();
     const signature = request.headers.get("stripe-signature");
