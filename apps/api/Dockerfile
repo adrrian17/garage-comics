@@ -15,12 +15,6 @@ RUN apk --no-cache add ca-certificates
 
 WORKDIR /app
 
-# Create non-root user with configurable ID for deployment flexibility
-ARG USER_ID=1000
-ARG GROUP_ID=1000
-RUN addgroup -g ${GROUP_ID} -S worker && \
-    adduser -S worker -u ${USER_ID}
-
 COPY --from=builder /app/main .
 
 RUN mkdir -p tmp

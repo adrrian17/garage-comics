@@ -3,9 +3,6 @@ services:
     build:
       context: ./apps/api
       dockerfile: Dockerfile
-      args:
-        USER_ID: ${USER_ID:-1000}
-        GROUP_ID: ${GROUP_ID:-1000}
     ports:
       - "1234:1234"
     environment:
@@ -23,9 +20,6 @@ services:
     build:
       context: ./apps/worker
       dockerfile: Dockerfile
-      args:
-        USER_ID: ${USER_ID:-1000}
-        GROUP_ID: ${GROUP_ID:-1000}
     environment:
       - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
       - API_URL=http://api:1234
