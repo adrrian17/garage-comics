@@ -19,7 +19,7 @@ services:
       context: ./apps/worker
       dockerfile: Dockerfile
     environment:
-      - RABBITMQ_URL=amqp://guest:guest@localhost:5672/
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
       - API_URL=http://api:1234
       # R2 Configuration - Set these in your .env file or environment
       - R2_ACCOUNT_ID=${R2_ACCOUNT_ID}
