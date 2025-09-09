@@ -13,7 +13,6 @@ RUN npm install
 # Copy TypeScript source code and config
 COPY src/ ./src/
 COPY tsconfig.json ./
-COPY wait-for-rabbit.sh ./
 
 # Build TypeScript to JavaScript
 RUN npm run build
@@ -21,14 +20,15 @@ RUN npm run build
 # Remove dev dependencies after build
 RUN npm prune --production
 
-# Create tmp directory for temporary files (before user creation)
+# Create tmp directory for temporary files
 RUN mkdir -p tmp
 
-# Change ownership of the working directory including tmp
-RUN chown -R worker:worker /app
+# Create non-root user
+RUN addgroup -g 1001 -S worker && \
+    adduser -S worker -u 1001
 
-# Ensure tmp directory has write permissions
-RUN chmod 755 /app/tmp
+# Change ownership of the working directory
+RUN chown -R worker:worker /app
 
 # Switch to non-root user
 USER worker

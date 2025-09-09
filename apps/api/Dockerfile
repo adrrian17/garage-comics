@@ -13,20 +13,11 @@ FROM alpine:latest
 
 RUN apk --no-cache add ca-certificates
 
-WORKDIR /app
+WORKDIR /root/
 
 COPY --from=builder /app/main .
 
 RUN mkdir -p tmp
-
-# Change ownership of the working directory including tmp
-RUN chown -R worker:worker /app
-
-# Ensure tmp directory has write permissions
-RUN chmod 755 /app/tmp
-
-# Switch to non-root user  
-USER worker
 
 EXPOSE 1234
 
