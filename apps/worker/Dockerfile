@@ -13,6 +13,7 @@ RUN npm install
 # Copy TypeScript source code and config
 COPY src/ ./src/
 COPY tsconfig.json ./
+COPY wait-for-rabbit.sh ./
 
 # Build TypeScript to JavaScript
 RUN npm run build
