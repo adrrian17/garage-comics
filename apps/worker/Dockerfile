@@ -21,17 +21,20 @@ RUN npm run build
 # Remove dev dependencies after build
 RUN npm prune --production
 
-# Create tmp directory for temporary files
+# Create tmp directory for temporary files (before user creation)
 RUN mkdir -p tmp
 
-# Create non-root user with host user ID to avoid permission issues
-ARG USER_ID=1001
-ARG GROUP_ID=1001
+# Create non-root user with configurable ID for deployment flexibility
+ARG USER_ID=1000
+ARG GROUP_ID=1000
 RUN addgroup -g ${GROUP_ID} -S worker && \
     adduser -S worker -u ${USER_ID}
 
-# Change ownership of the working directory
+# Change ownership of the working directory including tmp
 RUN chown -R worker:worker /app
+
+# Ensure tmp directory has write permissions
+RUN chmod 755 /app/tmp
 
 # Switch to non-root user
 USER worker

@@ -15,9 +15,9 @@ RUN apk --no-cache add ca-certificates
 
 WORKDIR /app
 
-# Create non-root user with host user ID to avoid permission issues
-ARG USER_ID=1001
-ARG GROUP_ID=1001
+# Create non-root user with configurable ID for deployment flexibility
+ARG USER_ID=1000
+ARG GROUP_ID=1000
 RUN addgroup -g ${GROUP_ID} -S worker && \
     adduser -S worker -u ${USER_ID}
 
@@ -25,8 +25,11 @@ COPY --from=builder /app/main .
 
 RUN mkdir -p tmp
 
-# Change ownership of the working directory
+# Change ownership of the working directory including tmp
 RUN chown -R worker:worker /app
+
+# Ensure tmp directory has write permissions
+RUN chmod 755 /app/tmp
 
 # Switch to non-root user  
 USER worker
