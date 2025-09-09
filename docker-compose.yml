@@ -13,6 +13,8 @@ services:
     volumes:
       - ./apps/api/tmp:/app/tmp
     restart: unless-stopped
+    networks:
+      - dokploy_net   # Red compartida
 
   worker:
     build:
@@ -36,6 +38,8 @@ services:
     volumes:
       - ./apps/worker/tmp:/app/tmp
     restart: unless-stopped
+    networks:
+      - dokploy_net   # Red compartida
 
   rabbitmq:
     image: rabbitmq:3.13-management
@@ -54,6 +58,12 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+    networks:
+      - dokploy_net   # Red compartida
 
 volumes:
   rabbitmq_data:
+
+networks:
+  dokploy_net:
+    driver: bridge
