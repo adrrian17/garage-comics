@@ -1,9 +1,4 @@
 {
-  "functions": {
-    "src/pages/api/webhooks/stripe.ts": {
-      "maxDuration": 30
-    }
-  },
   "rewrites": [
     {
       "source": "/api/webhooks/stripe",
