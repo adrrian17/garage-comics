@@ -24,9 +24,11 @@ RUN npm prune --production
 # Create tmp directory for temporary files
 RUN mkdir -p tmp
 
-# Create non-root user
-RUN addgroup -g 1001 -S worker && \
-    adduser -S worker -u 1001
+# Create non-root user with host user ID to avoid permission issues
+ARG USER_ID=1001
+ARG GROUP_ID=1001
+RUN addgroup -g ${GROUP_ID} -S worker && \
+    adduser -S worker -u ${USER_ID}
 
 # Change ownership of the working directory
 RUN chown -R worker:worker /app
