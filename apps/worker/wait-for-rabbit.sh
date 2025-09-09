@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-host="rabbitmq"
+host="localhost"
 port="5672"
 
 echo "⏳ Esperando a RabbitMQ en $host:$port..."
