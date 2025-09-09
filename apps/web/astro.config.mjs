@@ -17,6 +17,8 @@ export default defineConfig({
     },
   },
 
+  trailingSlash: "never",
+
   integrations: [react()],
 
   adapter: vercel({
