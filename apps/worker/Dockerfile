@@ -45,4 +45,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 RUN chmod +x wait-for-rabbit.sh
 
 # Ejecutar script que espera a RabbitMQ antes de levantar la app
-CMD ["app/wait-for-rabbit.sh"]
+CMD ["./app/wait-for-rabbit.sh"]
