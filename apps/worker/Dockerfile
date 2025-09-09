@@ -40,5 +40,8 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD node -e "console.log('Worker is healthy')" || exit 1
 
-# Start the worker (runs compiled JS from dist/)
-CMD ["npm", "start"]
+# Asegurar permisos para el script
+RUN chmod +x wait-for-rabbit.sh
+
+# Ejecutar script que espera a RabbitMQ antes de levantar la app
+CMD ["./wait-for-rabbit.sh"]
