@@ -48,11 +48,13 @@ export interface EmailConfirmationData {
 }
 
 export interface WorkerConfig {
-  rabbitmq: {
+  database: {
     url: string;
-    queue: string;
-    downloadsQueue: string;
-    confirmationsQueue: string;
+  };
+  queues: {
+    orders: string;
+    confirmationEmails: string;
+    orderConfirmations: string;
   };
   r2: {
     accountId: string;

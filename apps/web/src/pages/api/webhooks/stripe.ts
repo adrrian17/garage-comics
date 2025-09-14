@@ -1,7 +1,7 @@
 export const prerender = false;
 
-import amqp from "amqplib";
 import type { APIRoute } from "astro";
+import PgBoss from "pg-boss";
 import Stripe from "stripe";
 
 const stripe = new Stripe(import.meta.env.STRIPE_SECRET_KEY);
@@ -131,7 +131,7 @@ export const POST: APIRoute = async ({ request }) => {
             );
           }
 
-          // Send order confirmation to RabbitMQ queue
+          // Send order confirmation to pg-boss queue
           try {
             const customerEmail = session.data[0].customer_details?.email;
             const customerName = session.data[0].customer_details?.name;
@@ -148,37 +148,35 @@ export const POST: APIRoute = async ({ request }) => {
                 sessionId: session.data[0].id,
               };
 
-              const rabbitmqUrl =
-                import.meta.env.RABBITMQ_URL ||
-                "amqp://guest:guest@localhost:5672";
-              const connection = await amqp.connect(rabbitmqUrl);
-              const channel = await connection.createChannel();
+              const databaseUrl =
+                import.meta.env.DATABASE_URL ||
+                "postgresql://postgres:postgres@localhost:5432/garage_comics";
 
-              await channel.assertQueue("confirmations", { durable: true });
+              const boss = new PgBoss(databaseUrl);
+              await boss.start();
 
-              channel.sendToQueue(
-                "confirmations",
-                Buffer.from(JSON.stringify(confirmationMessage)),
-                { persistent: true },
-              );
+              await boss.send("confirmations", confirmationMessage, {
+                retryLimit: 3,
+                retryDelay: 30,
+                retryBackoff: true,
+              });
 
-              await channel.close();
-              await connection.close();
+              await boss.stop();
 
               console.log(
-                `Order confirmation sent to RabbitMQ queue for ${customerEmail}`,
+                `Order confirmation sent to pg-boss queue for ${customerEmail}`,
               );
             } else {
               console.log("No customer email found or no items to send");
             }
           } catch (queueError) {
             console.error(
-              "Error sending order confirmation to RabbitMQ queue:",
+              "Error sending order confirmation to pg-boss queue:",
               queueError,
             );
           }
 
-          // Send order to RabbitMQ queue
+          // Send order to pg-boss queue
           try {
             const customerEmail = session.data[0].customer_details?.email;
             const customerName = session.data[0].customer_details?.name;
@@ -189,37 +187,31 @@ export const POST: APIRoute = async ({ request }) => {
                 customerEmail,
                 customerName: customerName || null,
                 items: orderItems.map((item) => ({
-                  productName: item.productName,
-                  productImage: item.productImage,
                   productSlug: item.productSlug,
-                  amount: item.amount,
+                  quantity: 1, // Assuming quantity of 1 for each item
+                  price: item.amount,
                 })),
                 total: paymentIntent.amount,
-                paymentMethod: paymentIntent.payment_method_types[0],
-                createdAt: new Date().toISOString(),
-                sessionId: session.data[0].id,
-                processed: false,
+                timestamp: new Date().toISOString(),
               };
 
-              const rabbitmqUrl =
-                import.meta.env.RABBITMQ_URL ||
-                "amqp://guest:guest@localhost:5672";
-              const connection = await amqp.connect(rabbitmqUrl);
-              const channel = await connection.createChannel();
+              const databaseUrl =
+                import.meta.env.DATABASE_URL ||
+                "postgresql://postgres:postgres@localhost:5432/garage_comics";
 
-              await channel.assertQueue("orders", { durable: true });
+              const boss = new PgBoss(databaseUrl);
+              await boss.start();
 
-              channel.sendToQueue(
-                "orders",
-                Buffer.from(JSON.stringify(orderMessage)),
-                { persistent: true },
-              );
+              await boss.send("orders", orderMessage, {
+                retryLimit: 3,
+                retryDelay: 30,
+                retryBackoff: true,
+              });
 
-              await channel.close();
-              await connection.close();
+              await boss.stop();
 
               console.log(
-                `Order ${paymentIntent.id} sent to RabbitMQ queue successfully`,
+                `Order ${paymentIntent.id} sent to pg-boss queue successfully`,
               );
             } else {
               console.log(
@@ -227,7 +219,7 @@ export const POST: APIRoute = async ({ request }) => {
               );
             }
           } catch (queueError) {
-            console.error(`Error sending order to RabbitMQ queue:`, queueError);
+            console.error(`Error sending order to pg-boss queue:`, queueError);
           }
         } catch (error) {
           console.error("Error processing payment intent:", error);

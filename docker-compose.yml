@@ -6,9 +6,9 @@ services:
     ports:
       - "1234:1234"
     environment:
-      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/garage_comics
     depends_on:
-      rabbitmq:
+      postgres:
         condition: service_healthy
     restart: unless-stopped
 
@@ -17,7 +17,7 @@ services:
       context: ./apps/worker
       dockerfile: Dockerfile
     environment:
-      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/garage_comics
       - API_URL=http://api:1234
       - R2_ACCOUNT_ID=${R2_ACCOUNT_ID}
       - R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID}
@@ -26,30 +26,30 @@ services:
       - RESEND_API_KEY=${RESEND_API_KEY}
       - FROM_EMAIL=${FROM_EMAIL}
     depends_on:
-      rabbitmq:
+      postgres:
         condition: service_healthy
       api:
         condition: service_started
     restart: unless-stopped
 
-  rabbitmq:
-    image: rabbitmq:3.13-management
-    container_name: rabbitmq
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
     ports:
-      - "5672:5672"    # AMQP port
-      - "15672:15672"  # Management UI port
+      - "5432:5432"
     environment:
-      - RABBITMQ_DEFAULT_USER=guest
-      - RABBITMQ_DEFAULT_PASS=guest
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=garage_comics
     volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
+      - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d garage_comics"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 30s
 
 volumes:
-  rabbitmq_data:
+  postgres_data:

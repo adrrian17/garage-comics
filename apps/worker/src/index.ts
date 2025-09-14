@@ -12,9 +12,9 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { render } from "@react-email/render";
-import amqp from "amqplib";
 import FormData from "form-data";
 import fetch from "node-fetch";
+import PgBoss from "pg-boss";
 import { Resend } from "resend";
 import { DownloadReadyEmail } from "./emails/DownloadReady.js";
 import { OrderConfirmationEmail } from "./emails/OrderConfirmation.js";
@@ -28,11 +28,15 @@ import type {
 
 // Configuration
 const config: WorkerConfig = {
-  rabbitmq: {
-    url: process.env.RABBITMQ_URL || "amqp://guest:guest@localhost:5672",
-    queue: "orders",
-    downloadsQueue: "confirmation_emails",
-    confirmationsQueue: "confirmations",
+  database: {
+    url:
+      process.env.DATABASE_URL ||
+      "postgresql://postgres:postgres@localhost:5432/garage_comics",
+  },
+  queues: {
+    orders: "orders",
+    confirmationEmails: "confirmation_emails",
+    orderConfirmations: "confirmations",
   },
   r2: {
     accountId: process.env.R2_ACCOUNT_ID!,
@@ -80,39 +84,39 @@ const s3Client = new S3Client({
 const resend = new Resend(config.resend.apiKey);
 
 class OrderWorker {
-  private connection: any = null;
-  private channel: any = null;
+  private boss: PgBoss;
   private readonly tmpDir: string;
 
   constructor() {
     this.tmpDir = path.join(__dirname, "..", "tmp");
+    this.boss = new PgBoss(config.database.url);
 
     // Create tmp directory if it doesn't exist
     if (!fs.existsSync(this.tmpDir)) {
       fs.mkdirSync(this.tmpDir, { recursive: true });
     }
+
+    // Handle pg-boss errors
+    this.boss.on("error", (error) => {
+      console.error("❌ pg-boss error:", error);
+    });
   }
 
   async connect(): Promise<boolean> {
     try {
-      console.log("🔌 Connecting to RabbitMQ...");
-      this.connection = await amqp.connect(config.rabbitmq.url);
-      this.channel = await this.connection.createChannel();
+      console.log("🔌 Connecting to PostgreSQL...");
+      await this.boss.start();
 
-      // Ensure the queues exist
-      await this.channel.assertQueue(config.rabbitmq.queue, { durable: true });
-      await this.channel.assertQueue(config.rabbitmq.downloadsQueue, {
-        durable: true,
-      });
-      await this.channel.assertQueue(config.rabbitmq.confirmationsQueue, {
-        durable: true,
-      });
+      // Create queues if they don't exist
+      await this.boss.createQueue(config.queues.orders);
+      await this.boss.createQueue(config.queues.confirmationEmails);
+      await this.boss.createQueue(config.queues.orderConfirmations);
 
-      console.log("✅ Connected to RabbitMQ successfully");
+      console.log("✅ Connected to PostgreSQL successfully");
       return true;
     } catch (error) {
       console.error(
-        "❌ Failed to connect to RabbitMQ:",
+        "❌ Failed to connect to PostgreSQL:",
         (error as Error).message,
       );
       return false;
@@ -286,13 +290,11 @@ class OrderWorker {
         timestamp: orderData.timestamp,
       };
 
-      const message = JSON.stringify(confirmationData);
-
-      this.channel.sendToQueue(
-        config.rabbitmq.downloadsQueue,
-        Buffer.from(message),
-        { persistent: true },
-      );
+      await this.boss.send(config.queues.confirmationEmails, confirmationData, {
+        retryLimit: 3,
+        retryDelay: 30,
+        retryBackoff: true,
+      });
 
       console.log(
         `✅ Email confirmation queued for ${orderData.customerEmail}`,
@@ -520,120 +522,108 @@ class OrderWorker {
   }
 
   async startProcessing(): Promise<void> {
-    if (!this.channel) {
-      throw new Error("Channel not initialized. Call connect() first.");
-    }
-
     console.log(`🚀 Starting order processor worker...`);
     console.log(`📡 Listening to queues:`);
-    console.log(`   - Orders: ${config.rabbitmq.queue}`);
-    console.log(`   - Emails: ${config.rabbitmq.downloadsQueue}`);
-    console.log(`   - Confirmations: ${config.rabbitmq.confirmationsQueue}`);
+    console.log(`   - Orders: ${config.queues.orders}`);
+    console.log(`   - Emails: ${config.queues.confirmationEmails}`);
+    console.log(`   - Confirmations: ${config.queues.orderConfirmations}`);
 
     // Clean up old temporary files on startup
     await this.cleanupOldFiles();
 
-    // Set prefetch to 1 to process one order at a time
-    await this.channel.prefetch(1);
-
     // Process orders
-    this.channel.consume(config.rabbitmq.queue, async (msg: any) => {
-      if (msg !== null) {
+    await this.boss.work(
+      config.queues.orders,
+      { batchSize: 1 },
+      async (jobs) => {
+        const job = jobs[0];
+        if (!job) return;
+
         try {
-          const orderData: OrderData = JSON.parse(msg.content.toString());
+          console.log(`🔄 Processing order job ${job.id}`);
+          const orderData = job.data as OrderData;
 
           // Process the order
           const result = await this.processOrder(orderData);
 
-          if (result.success) {
-            // Acknowledge the message (remove from queue)
-            this.channel!.ack(msg);
-            console.log(`✅ Order ${orderData.orderId} acknowledged`);
-          } else {
-            // Reject the message and requeue it (or send to DLQ)
-            console.log(`❌ Order ${orderData.orderId} rejected and requeued`);
-            this.channel!.nack(msg, false, true);
+          if (!result.success) {
+            throw new Error(result.error || "Order processing failed");
           }
+
+          console.log(`✅ Order ${orderData.orderId} processed successfully`);
         } catch (error) {
           console.error(
-            "💥 Error processing order message:",
+            `❌ Error processing order job ${job.id}:`,
             (error as Error).message,
           );
-          // Reject and requeue the message
-          this.channel!.nack(msg, false, true);
-        }
-      }
-    });
-
-    // Process email confirmations
-    this.channel.consume(config.rabbitmq.downloadsQueue, async (msg: any) => {
-      if (msg !== null) {
-        try {
-          const emailData: EmailConfirmationData = JSON.parse(
-            msg.content.toString(),
-          );
-
-          // Process the email confirmation
-          await this.processEmailConfirmation(emailData);
-
-          // Acknowledge the message (remove from queue)
-          this.channel!.ack(msg);
-          console.log(
-            `✅ Email confirmation ${emailData.orderId} acknowledged`,
-          );
-        } catch (error) {
-          console.error(
-            "💥 Error processing email confirmation:",
-            (error as Error).message,
-          );
-          // Reject and requeue the message
-          this.channel!.nack(msg, false, true);
-        }
-      }
-    });
-
-    // Process order confirmations
-    this.channel.consume(
-      config.rabbitmq.confirmationsQueue,
-      async (msg: any) => {
-        if (msg !== null) {
-          try {
-            const confirmationData: OrderConfirmationData = JSON.parse(
-              msg.content.toString(),
-            );
-
-            // Process the order confirmation
-            await this.processOrderConfirmation(confirmationData);
-
-            // Acknowledge the message (remove from queue)
-            this.channel!.ack(msg);
-            console.log(
-              `✅ Order confirmation ${confirmationData.orderId} acknowledged`,
-            );
-          } catch (error) {
-            console.error(
-              "💥 Error processing order confirmation:",
-              (error as Error).message,
-            );
-            // Reject and requeue the message
-            this.channel!.nack(msg, false, true);
-          }
+          throw error; // This will trigger retry according to queue config
         }
       },
     );
 
-    console.log("⏳ Waiting for orders to process...");
+    // Process email confirmations
+    await this.boss.work(
+      config.queues.confirmationEmails,
+      { batchSize: 1 },
+      async (jobs) => {
+        const job = jobs[0];
+        if (!job) return;
+
+        try {
+          console.log(`📧 Processing email confirmation job ${job.id}`);
+          const emailData = job.data as EmailConfirmationData;
+
+          await this.processEmailConfirmation(emailData);
+          console.log(
+            `✅ Email confirmation ${emailData.orderId} sent successfully`,
+          );
+        } catch (error) {
+          console.error(
+            `❌ Error processing email job ${job.id}:`,
+            (error as Error).message,
+          );
+          throw error; // This will trigger retry according to queue config
+        }
+      },
+    );
+
+    // Process order confirmations
+    await this.boss.work(
+      config.queues.orderConfirmations,
+      { batchSize: 1 },
+      async (jobs) => {
+        const job = jobs[0];
+        if (!job) return;
+
+        try {
+          console.log(`📨 Processing order confirmation job ${job.id}`);
+          const confirmationData = job.data as OrderConfirmationData;
+
+          await this.processOrderConfirmation(confirmationData);
+          console.log(
+            `✅ Order confirmation ${confirmationData.orderId} sent successfully`,
+          );
+        } catch (error) {
+          console.error(
+            `❌ Error processing confirmation job ${job.id}:`,
+            (error as Error).message,
+          );
+          throw error; // This will trigger retry according to queue config
+        }
+      },
+    );
+
+    console.log("⏳ Waiting for jobs to process...");
   }
 
   async shutdown(): Promise<void> {
     console.log("🛑 Shutting down worker...");
 
-    if (this.channel) {
-      await this.channel.close();
-    }
-
-    if (this.connection) {
-      await this.connection.close();
+    try {
+      await this.boss.stop();
+      console.log("✅ pg-boss stopped successfully");
+    } catch (error) {
+      console.error("❌ Error stopping pg-boss:", (error as Error).message);
     }
 
     console.log("👋 Worker shutdown complete");
