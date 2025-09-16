@@ -17,6 +17,9 @@ importers:
       dotenv:
         specifier: ^17.2.1
         version: 17.2.2
+      stripe:
+        specifier: ^17.7.0
+        version: 17.7.0
       tsx:
         specifier: ^4.20.5
         version: 4.20.5
