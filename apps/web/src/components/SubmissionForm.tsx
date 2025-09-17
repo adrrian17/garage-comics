@@ -1,5 +1,6 @@
 import { actions } from "astro:actions";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { CheckCircle2, XCircle } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -38,6 +39,7 @@ type SubmissionFormaData = z.infer<typeof submissionSchema>;
 export default function ParticipaForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const form = useForm<SubmissionFormaData>({
     resolver: zodResolver(submissionSchema),
@@ -51,13 +53,17 @@ export default function ParticipaForm() {
 
   const onSubmit = async (data: SubmissionFormaData) => {
     setIsSubmitting(true);
+    setErrorMessage(null);
 
     try {
       const { data: result, error } = await actions.sendSubmission(data);
 
       if (error) {
         console.error("Error enviando participación:", error);
-        // Aquí puedes mostrar un mensaje de error al usuario
+        setErrorMessage(
+          error.message ||
+            "Error al enviar la participación. Por favor intenta de nuevo.",
+        );
         setIsSubmitting(false);
         return;
       }
@@ -66,13 +72,16 @@ export default function ParticipaForm() {
       setSubmitted(true);
       setIsSubmitting(false);
 
-      // Reset después de 3 segundos
+      // Reset después de 5 segundos
       setTimeout(() => {
         setSubmitted(false);
         form.reset();
-      }, 3000);
+      }, 5000);
     } catch (error) {
       console.error("Error inesperado:", error);
+      setErrorMessage(
+        "Error inesperado. Por favor intenta de nuevo más tarde.",
+      );
       setIsSubmitting(false);
     }
   };
@@ -86,6 +95,42 @@ export default function ParticipaForm() {
         Comparte tu historia y forma parte de nuestra comunidad de creadores de
         cómics.
       </p>
+
+      {/* Mensaje de éxito */}
+      {submitted && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <CheckCircle2 className="h-5 w-5 text-green-400" />
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-green-800">
+                ¡Participación enviada exitosamente!
+              </h3>
+              <p className="mt-1 text-sm text-green-700">
+                Gracias. Te contactaremos pronto con más información.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mensaje de error */}
+      {errorMessage && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <XCircle className="h-5 w-5 text-red-400" />
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-red-800">
+                Error al enviar participación
+              </h3>
+              <p className="mt-1 text-sm text-red-700">{errorMessage}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
