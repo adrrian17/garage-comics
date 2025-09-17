@@ -7,8 +7,8 @@ function sanitizeString(str: string): string {
   return str
     .trim()
     .replace(/[<>"'%;()&+\\]/g, "") // Remove potentially dangerous characters
-    .replace(/\s+/g, " ") // Normalize whitespace
-    .substring(0, 1000); // Limit maximum length
+    .replace(/\s+/g, " ")
+    .substring(0, 1000);
 }
 
 function sanitizeEmail(email: string): string {
@@ -16,14 +16,14 @@ function sanitizeEmail(email: string): string {
     .trim()
     .toLowerCase()
     .replace(/[<>"'%;()&+\\]/g, "")
-    .substring(0, 254); // RFC 5321 email length limit
+    .substring(0, 254);
 }
 
 function sanitizeUrl(url: string): string {
   return url
     .trim()
     .replace(/[<>"'%;()&+\\\s]/g, "") // Remove dangerous chars and whitespace
-    .substring(0, 2048); // Reasonable URL length limit
+    .substring(0, 2048);
 }
 
 function validatePortfolioUrl(url: string): boolean {
@@ -92,69 +92,6 @@ const submissionSchema = z.object({
 });
 
 export const server = {
-  createConnectedAccount: defineAction({
-    input: z.object({
-      email: z.string().email(),
-    }),
-    handler: async (input) => {
-      try {
-        const stripe = new Stripe(import.meta.env.STRIPE_SECRET_KEY);
-
-        // Create Express connected account
-        const account = await stripe.accounts.create({
-          type: "express",
-          country: "MX",
-          email: input.email,
-          capabilities: {
-            card_payments: { requested: true },
-            transfers: { requested: true },
-          },
-          business_type: "individual",
-          settings: {
-            payouts: {
-              schedule: {
-                interval: "daily",
-                delay_days: 7,
-              },
-            },
-          },
-        });
-
-        // Create account link for onboarding
-        const accountLink = await stripe.accountLinks.create({
-          account: account.id,
-          refresh_url: `${import.meta.env.SITE_URL || "http://localhost:4321"}/connect/refresh`,
-          return_url: `${import.meta.env.SITE_URL || "http://localhost:4321"}/connect/return`,
-          type: "account_onboarding",
-        });
-
-        return {
-          accountId: account.id,
-          onboardingUrl: accountLink.url,
-          account: {
-            id: account.id,
-            email: account.email,
-            created: account.created,
-            country: account.country,
-            type: account.type,
-            details_submitted: account.details_submitted,
-            charges_enabled: account.charges_enabled,
-            payouts_enabled: account.payouts_enabled,
-          },
-        };
-      } catch (error) {
-        console.error("Error creating connected account:", error);
-
-        throw new ActionError({
-          code: "INTERNAL_SERVER_ERROR",
-          message:
-            error instanceof Error
-              ? error.message
-              : "Error creating connected account",
-        });
-      }
-    },
-  }),
   generateCheckout: defineAction({
     input: z.array(
       z.object({
