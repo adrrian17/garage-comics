@@ -1,0 +1,15 @@
+---
+import ParticipaForm from "../components/SubmissionForm";
+import DefaultLayout from "../layouts/DefaultLayout.astro";
+---
+
+<DefaultLayout>
+  <div class="container mx-auto px-4 py-12">
+    <div class="max-w-2xl mx-auto">
+      <h1 class="text-4xl font-bold text-center mb-8 text-white">
+        ¡Participa en Garage Cómics!
+      </h1>
+      <ParticipaForm client:load />
+    </div>
+  </div>
+</DefaultLayout>
