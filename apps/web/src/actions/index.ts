@@ -1,5 +1,6 @@
 import { ActionError, defineAction } from "astro:actions";
 import { z } from "astro:schema";
+import { db, submissions } from "@garage-comics/database";
 import Stripe from "stripe";
 
 // Utility functions for sanitization and validation
@@ -158,19 +159,20 @@ export const server = {
           correo,
           portafolio,
           pitch,
-          created_at: new Date(),
           status: "pending" as const,
         };
 
-        // TODO: Save data to Postgres
-        // const result = await db.insert(submissions).values(submissionData).returning();
+        const result = await db
+          .insert(submissions)
+          .values(submissionData)
+          .returning();
 
-        console.log("Ready for database insertion:", submissionData);
+        console.log("Submission saved to database:", result[0]);
 
         return {
           success: true,
           message: "Submission received successfully",
-          submissionId: `temp_${Date.now()}`, // Temporary ID until DB integration
+          submissionId: result[0].id,
         };
       } catch (error) {
         console.error("Error processing submission:", {
