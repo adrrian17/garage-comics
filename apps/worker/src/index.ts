@@ -18,11 +18,13 @@ import PgBoss from "pg-boss";
 import { Resend } from "resend";
 import { DownloadReadyEmail } from "./emails/DownloadReady.js";
 import { OrderConfirmationEmail } from "./emails/OrderConfirmation.js";
+import { SubmissionConfirmationEmail } from "./emails/SubmissionConfirmation.js";
 import type {
   EmailConfirmationData,
   OrderConfirmationData,
   OrderData,
   ProcessResult,
+  SubmissionEmailData,
   WorkerConfig,
 } from "./types.js";
 
@@ -37,6 +39,7 @@ const config: WorkerConfig = {
     orders: "orders",
     confirmationEmails: "confirmation_emails",
     orderConfirmations: "confirmations",
+    submissionEmails: "submission_emails",
   },
   r2: {
     accountId: process.env.R2_ACCOUNT_ID!,
@@ -111,6 +114,7 @@ class OrderWorker {
       await this.boss.createQueue(config.queues.orders);
       await this.boss.createQueue(config.queues.confirmationEmails);
       await this.boss.createQueue(config.queues.orderConfirmations);
+      await this.boss.createQueue(config.queues.submissionEmails);
 
       console.log("✅ Connected to PostgreSQL successfully");
       return true;
@@ -408,6 +412,51 @@ class OrderWorker {
     }
   }
 
+  async processSubmissionConfirmation(
+    submissionData: SubmissionEmailData,
+  ): Promise<void> {
+    try {
+      console.log(
+        `📧 Processing submission confirmation email for: ${submissionData.email}`,
+      );
+
+      const subject =
+        "¡Hemos recibido tu pitch para participar en Garage Comics!";
+
+      const html = await render(
+        SubmissionConfirmationEmail({
+          name: submissionData.name,
+          email: submissionData.email,
+          portfolio: submissionData.portfolio,
+          pitch: submissionData.pitch,
+          submissionId: submissionData.submissionId,
+        }),
+      );
+
+      const result = await resend.emails.send({
+        from: config.resend.fromEmail,
+        to: submissionData.email,
+        subject,
+        html,
+      });
+
+      if (result.error) {
+        throw new Error(`Resend error: ${result.error.message}`);
+      }
+
+      console.log(
+        `✅ Submission confirmation email sent successfully to ${submissionData.email}`,
+      );
+      console.log(`📬 Email ID: ${result.data?.id}`);
+    } catch (error) {
+      console.error(
+        `❌ Failed to send submission confirmation email to ${submissionData.email}:`,
+        (error as Error).message,
+      );
+      throw error;
+    }
+  }
+
   async cleanupFiles(filePaths: string[]): Promise<void> {
     console.log(`🧹 Starting cleanup of ${filePaths.length} file(s)...`);
 
@@ -527,6 +576,7 @@ class OrderWorker {
     console.log(`   - Orders: ${config.queues.orders}`);
     console.log(`   - Emails: ${config.queues.confirmationEmails}`);
     console.log(`   - Confirmations: ${config.queues.orderConfirmations}`);
+    console.log(`   - Submissions: ${config.queues.submissionEmails}`);
 
     // Clean up old temporary files on startup
     await this.cleanupOldFiles();
@@ -606,6 +656,32 @@ class OrderWorker {
         } catch (error) {
           console.error(
             `❌ Error processing confirmation job ${job.id}:`,
+            (error as Error).message,
+          );
+          throw error; // This will trigger retry according to queue config
+        }
+      },
+    );
+
+    // Process submission confirmation emails
+    await this.boss.work(
+      config.queues.submissionEmails,
+      { batchSize: 1 },
+      async (jobs) => {
+        const job = jobs[0];
+        if (!job) return;
+
+        try {
+          console.log(`📨 Processing submission confirmation job ${job.id}`);
+          const submissionData = job.data as SubmissionEmailData;
+
+          await this.processSubmissionConfirmation(submissionData);
+          console.log(
+            `✅ Submission confirmation ${submissionData.submissionId} sent successfully`,
+          );
+        } catch (error) {
+          console.error(
+            `❌ Error processing submission confirmation job ${job.id}:`,
             (error as Error).message,
           );
           throw error; // This will trigger retry according to queue config

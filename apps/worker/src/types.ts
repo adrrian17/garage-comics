@@ -47,6 +47,14 @@ export interface EmailConfirmationData {
   timestamp: string;
 }
 
+export interface SubmissionEmailData {
+  name: string;
+  email: string;
+  portfolio: string;
+  pitch: string;
+  submissionId: string;
+}
+
 export interface WorkerConfig {
   database: {
     url: string;
@@ -55,6 +63,7 @@ export interface WorkerConfig {
     orders: string;
     confirmationEmails: string;
     orderConfirmations: string;
+    submissionEmails: string;
   };
   r2: {
     accountId: string;

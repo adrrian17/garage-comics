@@ -1,7 +1,13 @@
 import { ActionError, defineAction } from "astro:actions";
 import { z } from "astro:schema";
 import { db, submissions } from "@garage-comics/database";
+import PgBoss from "pg-boss";
 import Stripe from "stripe";
+
+const boss = new PgBoss(
+  import.meta.env.DATABASE_URL ||
+    "postgresql://postgres:postgres@localhost:5432/garage_comics",
+);
 
 // Utility functions for sanitization and validation
 function sanitizeString(str: string): string {
@@ -39,6 +45,43 @@ function validatePortfolioUrl(url: string): boolean {
     return true;
   } catch {
     return false;
+  }
+}
+
+async function queueSubmissionEmail(
+  name: string,
+  email: string,
+  portfolio: string,
+  pitch: string,
+  submissionId: string,
+): Promise<void> {
+  try {
+    if (!boss) {
+      throw new Error("Queue system not available");
+    }
+
+    await boss.start();
+
+    await boss.send(
+      "submission_emails",
+      {
+        name,
+        email,
+        portfolio,
+        pitch,
+        submissionId,
+      },
+      {
+        retryLimit: 5,
+        retryDelay: 30,
+        retryBackoff: true,
+      },
+    );
+
+    console.log("Email queued successfully for:", email);
+  } catch (error) {
+    console.error("Failed to queue email:", error);
+    throw error;
   }
 }
 
@@ -168,6 +211,21 @@ export const server = {
           .returning();
 
         console.log("Submission saved to database:", result[0]);
+
+        try {
+          await queueSubmissionEmail(
+            nombre,
+            correo,
+            portafolio,
+            pitch,
+            result[0].id.toString(),
+          );
+        } catch (emailError) {
+          console.error(
+            "Failed to queue confirmation email, but submission was saved:",
+            emailError,
+          );
+        }
 
         return {
           success: true,
